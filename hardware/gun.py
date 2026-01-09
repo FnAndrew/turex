@@ -10,30 +10,30 @@ sensor_pin = Pin(2, Pin.IN, Pin.PULL_UP)
 mosfet_pin.value(0)
 
 # --- PROMĚNNÉ ---
-probiha_strelba = False
-cas_spusteni = 0
-bezpecnostni_limit = 2000  # ms
+firing_in_progress = False
+start_time = 0
+safety_timeout = 2000  # ms
 
 # --- FUNKCE (METODY) ---
 
-def zastavit_palbu(duvod):
-    global probiha_strelba
+def stop_firing(reason):
+    global firing_in_progress
     mosfet_pin.value(0)  # Vypnout MOSFET
-    probiha_strelba = False
-    print("--> STOP:", duvod)
+    firing_in_progress = False
+    print("--> STOP:", reason)
 
-def spustit_strelbu():
-    global probiha_strelba, cas_spusteni
+def start_firing():
+    global firing_in_progress, start_time
     
     # Pokud už střílíme, ignorujeme další příkazy
-    if probiha_strelba:
+    if firing_in_progress:
         return
 
     print("--> START: Spoustim cyklus...")
     
     mosfet_pin.value(1)       # Zapnout MOSFET
-    probiha_strelba = True    # Nastavit příznak
-    cas_spusteni = time.ticks_ms() # Uložit čas startu
+    firing_in_progress = True    # Nastavit příznak
+    start_time = time.ticks_ms() # Uložit čas startu
     
     # DŮLEŽITÉ: Prodleva 100ms, aby motor odjel ze spínače
     # než ho smyčka začne kontrolovat.
@@ -41,35 +41,35 @@ def spustit_strelbu():
 
 # --- HLAVNÍ SMYČKA (LOOP) ---
 print("--- SYSTEM PRIPRAVEN ---")
-print("Cekam na zavolani spustit_strelbu()...")
+print("Cekam na zavolani start_firing()...")
 
 while True:
     # ---------------------------------------------------------
     # 1. ZDE JE MÍSTO PRO TVŮJ OVLADAČ
     # ---------------------------------------------------------
-    # TODO: Příklad: if ovladac.tlacitko_zmacknuto(): spustit_strelbu()
+    # TODO: Příklad: if ovladac.tlacitko_zmacknuto(): start_firing()
     # Pro testování můžeš odkomentovat následující řádky, které 
     # simulují náhodný výstřel každých 5 sekund:
     # ---------------------------------------------------------
     # if time.ticks_ms() % 5000 < 10:
-    #     spustit_strelbu()
+    #     start_firing()
 
 
     # ---------------------------------------------------------
     # 2. ŘÍZENÍ STŘELBY
     # ---------------------------------------------------------
-    if probiha_strelba:
+    if firing_in_progress:
         current_time = time.ticks_ms()
 
         # A) Kontrola koncového spínače (Cut-off)
         # value() == 0 znamená sepnuto (protože PULL_UP)
         if sensor_pin.value() == 0:
-            zastavit_palbu("HOTAVO: Senzor sepnul (cyklus dokoncen)")
+            stop_firing("HOTAVO: Senzor sepnul (cyklus dokoncen)")
 
         # B) Bezpečnostní pojistka (Timeout)
         # Používáme time.ticks_diff pro bezpečný odečet času
-        elif time.ticks_diff(current_time, cas_spusteni) > bezpecnostni_limit:
-            zastavit_palbu("CHYBA: Timeout (motor bezi moc dlouho)")
+        elif time.ticks_diff(current_time, start_time) > safety_timeout:
+            stop_firing("CHYBA: Timeout (motor bezi moc dlouho)")
             
     # Krátká pauza, aby procesor neběžel na 100% zbytečně
     time.sleep_ms(10)
