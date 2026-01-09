@@ -1,0 +1,29 @@
+sudo nano /etc/systemd/system/battle_robot.service
+--------------------------------------------------------------------
+[Unit]
+Description=Battle Robot Control Software
+# Čekáme na síť a bluetooth (důležité pro Xbox)
+After=network.target bluetooth.target 
+
+[Service]
+# Spustí se pod uživatelem pi (nebo tvůj user)
+User=pi
+WorkingDirectory=/home/pi/battle_robot
+
+# Příkaz pro spuštění
+ExecStart=/usr/bin/python3 /home/pi/battle_robot/main.py
+
+# Pokud spadne, restartuj se po 5 sekundách
+Restart=always
+RestartSec=5
+
+# Výstup print() půjde do logů (journalctl)
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+----------------------------------------------------------------------
+sudo systemctl daemon-reload
+sudo systemctl enable battle_robot.service
+sudo systemctl start battle_robot.service
