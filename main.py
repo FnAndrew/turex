@@ -90,9 +90,11 @@ async def main():
         print("Úlohy zrušeny.")
     finally:
         # Tento blok se provede VŽDY při ukončení (i při chybě)
-        print("\nCleaning up...")
-        dt.stop() # Zastavíme motory, aby robot neujel
-        # Případně vypnout laser: turret.set_laser(False)
+        print("\n-> Vypínám systém...")
+        
+        logic.stop_all()
+        
+        print("Systém vypnut.")
 
 if __name__ == "__main__":
     try:

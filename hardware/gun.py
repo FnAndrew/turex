@@ -1,75 +1,52 @@
-from machine import Pin
-import time
+from gpiozero import OutputDevice, Button
+import asyncio
 
-# --- NASTAVENÍ PINŮ ---
-# Uprav si čísla pinů podle svého mikrokontroléru (např. GP6 a GP2 pro Pi Pico)
-mosfet_pin = Pin(6, Pin.OUT)
-sensor_pin = Pin(2, Pin.IN, Pin.PULL_UP)
+# --- GPIO PIN CONFIGURATION (BCM numbering for Raspberry Pi) ---
+# Adjust pin numbers according to your Raspberry Pi setup (GPIO 6 and GPIO 2)
+mosfet = OutputDevice(6, active_high=True, initial_value=False)  # MOSFET control
+sensor = Button(2, pull_up=True, bounce_time=None)  # End-stop sensor
 
-# Ujistit se, že je motor vypnutý
-mosfet_pin.value(0)
+# --- VARIABLES ---
+SAFETY_TIMEOUT = 2.0  # seconds (2000 ms = 2.0 s)
 
-# --- PROMĚNNÉ ---
-firing_in_progress = False
-start_time = 0
-safety_timeout = 2000  # ms
+class Gun:
+    def __init__(self):
+        self.firing_in_progress = False
+        self.start_time = 0.0
 
-# --- FUNKCE (METODY) ---
+    async def fire_shot(self):
+        """Starts the firing process if not already in progress."""
+        if self.firing_in_progress:
+            return
 
-def stop_firing(reason):
-    global firing_in_progress
-    mosfet_pin.value(0)  # Vypnout MOSFET
-    firing_in_progress = False
-    print("--> STOP:", reason)
+        print("--> START: Initiating firing cycle...")
+        mosfet.on()  # Turn on the MOSFET
+        self.firing_in_progress = True
+        self.start_time = asyncio.get_event_loop().time()  # Record the start time
 
-def start_firing():
-    global firing_in_progress, start_time
-    
-    # Pokud už střílíme, ignorujeme další příkazy
-    if firing_in_progress:
-        return
+        try:
+            # Wait for the firing process to complete or timeout
+            while self.firing_in_progress:
+                current_time = asyncio.get_event_loop().time()
 
-    print("--> START: Spoustim cyklus...")
-    
-    mosfet_pin.value(1)       # Zapnout MOSFET
-    firing_in_progress = True    # Nastavit příznak
-    start_time = time.ticks_ms() # Uložit čas startu
-    
-    # DŮLEŽITÉ: Prodleva 100ms, aby motor odjel ze spínače
-    # než ho smyčka začne kontrolovat.
-    time.sleep_ms(100)
+                # A) End-stop sensor check (Cut-off)
+                if sensor.is_pressed:
+                    self.stop_firing("DONE: Sensor triggered (cycle complete)")
+                    break
 
-# --- HLAVNÍ SMYČKA (LOOP) ---
-print("--- SYSTEM PRIPRAVEN ---")
-print("Cekam na zavolani start_firing()...")
+                # B) Safety timeout check
+                elif (current_time - self.start_time) > SAFETY_TIMEOUT:
+                    self.stop_firing("ERROR: Timeout (motor running too long)")
+                    break
 
-while True:
-    # ---------------------------------------------------------
-    # 1. ZDE JE MÍSTO PRO TVŮJ OVLADAČ
-    # ---------------------------------------------------------
-    # TODO: Příklad: if ovladac.tlacitko_zmacknuto(): start_firing()
-    # Pro testování můžeš odkomentovat následující řádky, které 
-    # simulují náhodný výstřel každých 5 sekund:
-    # ---------------------------------------------------------
-    # if time.ticks_ms() % 5000 < 10:
-    #     start_firing()
+                # Short delay to prevent busy-waiting
+                await asyncio.sleep(0.01)
 
+        finally:
+            self.firing_in_progress = False
 
-    # ---------------------------------------------------------
-    # 2. ŘÍZENÍ STŘELBY
-    # ---------------------------------------------------------
-    if firing_in_progress:
-        current_time = time.ticks_ms()
-
-        # A) Kontrola koncového spínače (Cut-off)
-        # value() == 0 znamená sepnuto (protože PULL_UP)
-        if sensor_pin.value() == 0:
-            stop_firing("HOTAVO: Senzor sepnul (cyklus dokoncen)")
-
-        # B) Bezpečnostní pojistka (Timeout)
-        # Používáme time.ticks_diff pro bezpečný odečet času
-        elif time.ticks_diff(current_time, start_time) > safety_timeout:
-            stop_firing("CHYBA: Timeout (motor bezi moc dlouho)")
-            
-    # Krátká pauza, aby procesor neběžel na 100% zbytečně
-    time.sleep_ms(10)
+    def stop_firing(self, reason):
+        """Stops the firing process and logs the reason."""
+        mosfet.off()  # Turn off the MOSFET
+        self.firing_in_progress = False
+        print(f"--> STOP: {reason}")
