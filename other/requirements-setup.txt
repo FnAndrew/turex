@@ -1,0 +1,5 @@
+# Build requirements.txt file from project
+pipreqs --encoding=iso-8859-1
+
+# Install libs based on this file
+pip install -r requirements.txt
