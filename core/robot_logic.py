@@ -10,6 +10,10 @@ class RobotLogic:
         self.turret = turret
         self.gun = gun
         self.lights = lights
+        
+        # Turret speed storage
+        self.turret_speed_pan = 0.0
+        self.turret_speed_tilt = 0.0
 
     # Tyto metody bude volat JAKÝKOLIV ovladač
     def set_movement(self, speed, turn):
@@ -40,7 +44,16 @@ class RobotLogic:
         # Další bezpečnostní kroky...
 
     async def loop(self):
+        """Main robot control loop"""
         while True:
+            # Update drivetrain
             await self.drive.update()
-            # Aplikace pohybu věže...
+            
+            # Update turret movement from stored speeds
+            if self.turret_speed_pan != 0 or self.turret_speed_tilt != 0:
+                delta_pan = self.turret_speed_pan * 5  # Adjust sensitivity (degrees per cycle)
+                delta_tilt = self.turret_speed_tilt * 5
+                self.turret.move(delta_pan, delta_tilt)
+                await self.turret.update()
+            
             await asyncio.sleep(0.02)

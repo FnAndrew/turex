@@ -62,18 +62,16 @@ async def main():
 
     else:
         # --- REŽIM 2: XBOX ---
-        print("\n[REŽIM] Detekován Xbox Controller")
+        print("\n[MODE] Xbox Controller detected")
         
-        input_system = XboxController(config.GAMEPAD_DEVICE, logic)
+        input_system = XboxController(logic)
         
-        # Zde voláme vylepšený connect, který čeká 30 sekund
-        # Pokud zapneš robota a až pak ovladač, tady se to chytí
-        print("Zapni prosím ovladač...")
+        # Wait up to 30 seconds for controller to connect
+        print("Please turn on the controller...")
         is_connected = await input_system.connect(timeout=30)
         
         if not is_connected:
-            print("\n!!! Ovladač se nepodařilo připojit !!!")
-            # Volitelné: Můžeme zde program ukončit, nebo přepnout na autonomní režim
+            print("\n!!! Failed to connect controller !!!")
             return
 
     # ---------------------------------------------------------
