@@ -1,39 +1,65 @@
-# config.py
+# Using software PWM-capable pins, avoiding hardware PWM reserved for servos
+MOTOR_FL_PINS = (17, 27)  # Front Left - OK
+MOTOR_FR_PINS = (22, 23)  # Front Right - OK
+MOTOR_RL_PINS = (24, 25)  # Rear Left - OK
+MOTOR_RR_PINS = (5, 6)    # Rear Right - OK (FIXED: No longer conflicts with gun)
 
-# Piny pro motory (příklad pro H-Můstek L298N nebo podobné)
-MOTOR_FL_PINS = (17, 27) # Front Left
-MOTOR_FR_PINS = (22, 23) # Front Right
-MOTOR_RL_PINS = (24, 25) # Rear Left
-MOTOR_RR_PINS = (5, 6)   # Rear Right
+# === TURRET SERVOS ===
+# Using hardware PWM pins for smooth servo control
+SERVO_PAN_PIN = 12   # Horizontal (PWM0)
+SERVO_TILT_PIN = 13  # Vertical (PWM1)
 
-# Piny pro věž
-SERVO_PAN_PIN = 12  # Horizontální
-SERVO_TILT_PIN = 13 # Vertikální
-LASER_PIN = 16
+# === WEAPON SYSTEM ===
+# FIXED: Changed from conflicting pins 5, 6
+GUN_SENZOR_PIN = 26  # End-stop sensor (was 6)
+GUN_MOSFET_PIN = 19  # Motor control (was 5)
+SAFETY_TIMEOUT = 2.0  # seconds
 
-# Zbraň a efekty # TODO: Nastavit správné piny
-GUN_SENZOR_PIN = 6
-GUN_MOSFET_PIN = 5
-SAFETY_TIMEOUT = 2.0  # seconds (2000 ms = 2.0 s)
+# === LASER ===
+LASER_PIN = 16  # OK
 
-# Nastavení ovladače
-# Cesta k zařízení (po spárování přes bluetooth se objeví v /dev/input/)
-GAMEPAD_DEVICE = '/dev/input/event0'
-BTN_HOLD_TIME = 1.0  # seconds pro dlouhý stisk
-
-# Xbox ovladač
-BTN_A = 304  # Příklad kódu pro tlačítko A
-BTN_B = 305
-BTN_TR = 311 # Pravý Bumper (R1)
-
-# Deadzone pro páčky (aby robot neujizdel sam)
-DEADZONE = 4000 # Pro rozsah 0-65535 je střed cca 32000, 4000 je ok tolerance
-
-# LED pins (multiple LEDs with labels)
+# === LED INDICATORS ===
 LED_PINS = {
-    'status': 19,      # Status LED (original LED_PIN)
-    'indicator': 20,   # Indicator LED
-    'armed': 21,       # Armed LED
+    'status': 20,      # Status LED (changed from 19 to avoid gun conflict)
+    'indicator': 21,   # Indicator LED
+    'armed': 4,        # Armed LED (changed from 21 to avoid mode switch)
 }
 
-LASER_PIN = 16
+# === MODE SWITCH ===
+# This is defined in main.py as MODE_SWITCH_PIN = 21
+# Suggested change: Use GPIO14 instead (see main.py fix below)
+MODE_SWITCH_PIN = 14  # Changed from 21 to avoid conflict with 'armed' LED
+
+# === CONTROLLER SETTINGS ===
+GAMEPAD_DEVICE = '/dev/input/event0'
+BTN_HOLD_TIME = 1.0  # seconds
+
+# Xbox MAC address (for reference)
+XBOX_MAC = "XX:XX:XX:XX:XX:XX"
+
+# Xbox controller button codes
+BTN_A = 304
+BTN_B = 305
+BTN_X = 307
+BTN_Y = 308
+BTN_TR = 311  # Right Bumper
+
+# Axis codes
+AXIS_LX = 0    # Left stick X
+AXIS_LY = 1    # Left stick Y
+AXIS_RX = 3    # Right stick X
+AXIS_RY = 4    # Right stick Y
+AXIS_GAS = 5
+AXIS_BRAKE = 2
+AXIS_DPAD_X = 16
+AXIS_DPAD_Y = 17
+
+# Deadzone for joysticks
+DEADZONE = 4000
+
+# Button mapping for display
+BUTTON_MAP = {
+    304: "A", 305: "B", 307: "X", 308: "Y",
+    310: "LB", 311: "RB", 314: "Select", 315: "Start",
+    316: "Xbox Button", 317: "L3", 318: "R3"
+}

@@ -16,11 +16,6 @@ from core.robot_logic import RobotLogic
 from inputs.xbox_controller import XboxController
 from inputs.elrs_input import ElrsInput
 
-# Nastavení pinu pro výběr režimu
-# Zapojení: Pin 21 <-> Přepínač <-> GND
-# Pokud je přepínač SEPNUTÝ (spojen se zemí) -> Button detekuje stisk (is_pressed)
-MODE_SWITCH_PIN = 21
-
 async def main():
     print("=== STARTUJI SYSTÉM BATTLE ROBOT ===")
 
@@ -52,7 +47,7 @@ async def main():
     # ---------------------------------------------------------
     # 3. Volba vstupu podle přepínače
     # ---------------------------------------------------------
-    mode_switch = Button(MODE_SWITCH_PIN, pull_up=True)
+    mode_switch = Button(config.MODE_SWITCH_PIN, pull_up=True)
     input_system = None
 
     if mode_switch.is_pressed:
