@@ -35,7 +35,7 @@ GAMEPAD_DEVICE = '/dev/input/event0'
 BTN_HOLD_TIME = 1.0  # seconds
 
 # Xbox MAC address (for reference)
-XBOX_MAC = "XX:XX:XX:XX:XX:XX"
+XBOX_MAC = "44:16:22:8C:36:96"
 
 # Xbox controller button codes
 BTN_A = 304

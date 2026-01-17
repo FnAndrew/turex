@@ -20,8 +20,23 @@ class RobotLogic:
         """ speed: -1.0 až 1.0, turn: -1.0 až 1.0 """
         self.drive.set_move(speed, turn)
 
+    def set_turret_position(self, pan_percent, tilt_percent):
+        """Set turret position directly from controller stick
+        
+        Args:
+            pan_percent: -100 to +100 (left to right)
+            tilt_percent: -100 to +100 (down to up)
+        """
+        # Map -100..+100 to servo angle ranges
+        # Pan: -100..+100 -> -135..+135 degrees
+        pan_angle = (pan_percent / 100.0) * 135
+        # Tilt: -100..+100 -> -90..+90 degrees
+        tilt_angle = (tilt_percent / 100.0) * 90
+        
+        self.turret.set_position(pan_angle, tilt_angle)
+
     def move_turret(self, pan_speed, tilt_speed):
-        """ Rychlost otáčení věže """
+        """ Rychlost otáčení věže (pro jiné ovladače) """
         # Uložíme si rychlosti a aplikujeme je v loop()
         self.turret_speed_pan = pan_speed
         self.turret_speed_tilt = tilt_speed
@@ -50,10 +65,17 @@ class RobotLogic:
             await self.drive.update()
             
             # Update turret movement from stored speeds
+            # Convert speed (-1.0 to 1.0) to angle delta per cycle
             if self.turret_speed_pan != 0 or self.turret_speed_tilt != 0:
-                delta_pan = self.turret_speed_pan * 5  # Adjust sensitivity (degrees per cycle)
-                delta_tilt = self.turret_speed_tilt * 5
+                # Speed multiplier: degrees per cycle (adjust for sensitivity)
+                # Pan: 270° range, use larger multiplier for faster movement
+                delta_pan = self.turret_speed_pan * 8  # Max ~8 degrees per 0.02s cycle
+                # Tilt: 180° range
+                delta_tilt = self.turret_speed_tilt * 5  # Max ~5 degrees per 0.02s cycle
+                
                 self.turret.move(delta_pan, delta_tilt)
-                await self.turret.update()
+            
+            # Always update turret to apply new position
+            await self.turret.update()
             
             await asyncio.sleep(0.02)

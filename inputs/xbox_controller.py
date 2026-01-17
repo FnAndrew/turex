@@ -79,11 +79,11 @@ class XboxController:
                 
                 if event.code in self.press_times:
                     duration = event.timestamp() - self.press_times[event.code]
-                    print(f"   -> Drženo po dobu: {duration:.2f} sekund")
+                    # print(f"   -> Drženo po dobu: {duration:.2f} sekund")
                     
                     # Logic based on press duration
                     if duration > config.BTN_HOLD_TIME:
-                        print(f"   -> (Dlouhý stisk!)")
+                        print(f"   -> (Dlouhý stisk!, {duration:.2f} sekund)")
                         self._handle_long_press(event.code, nazev, duration)
                     else:
                         self._handle_short_press(event.code, nazev, duration)
@@ -108,12 +108,16 @@ class XboxController:
                 self.logic.set_movement(self.speed, self.turn)
 
             elif event.code == config.AXIS_RX:
-                print(f"Pravá X: {self.map_axis_stick(event.value)}%")
                 self.turret_pan = self._map_axis(event.value)
+                print(f"Pravá X: {self.turret_pan}% -> Turret Pan Speed")
+                # Send speed to turret (stick position = rotation speed)
+                self.logic.move_turret(self.turret_pan / 100.0, self.turret_tilt / 100.0)
 
             elif event.code == config.AXIS_RY:
-                print(f"Pravá Y: {self.map_axis_stick(event.value)}%")
                 self.turret_tilt = -self._map_axis(event.value)
+                print(f"Pravá Y: {self.turret_tilt}% -> Turret Tilt Speed")
+                # Send speed to turret (stick position = rotation speed)
+                self.logic.move_turret(self.turret_pan / 100.0, self.turret_tilt / 100.0)
 
             elif event.code == config.AXIS_GAS:
                 print(f"PLYN: {self.map_trigger(event.value)}%")
