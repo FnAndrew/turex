@@ -1,7 +1,11 @@
 import asyncio
+from hardware.drivetrain import Drivetrain
+from hardware.turret import Turret
+from hardware.gun import Gun
+from hardware.lights import Lights
 
 class RobotLogic:
-    def __init__(self, drivetrain, turret, gun, lights):
+    def __init__(self, drivetrain: Drivetrain, turret: Turret, gun: Gun, lights: Lights):
         self.drive = drivetrain
         self.turret = turret
         self.gun = gun
