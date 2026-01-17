@@ -47,6 +47,9 @@ BTN_B = 305
 BTN_X = 307
 BTN_Y = 308
 BTN_TR = 311  # Right Bumper
+BTN_START = 315
+BTN_BACK = 314
+BTN_XBOX = 316
 
 # Axis codes
 AXIS_LX = 0    # Left stick X

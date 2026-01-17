@@ -14,6 +14,23 @@ class RobotLogic:
         # Turret speed storage
         self.turret_speed_pan = 0.0
         self.turret_speed_tilt = 0.0
+        
+        # Armed state
+        self.armed = False
+        self._update_armed_led()
+
+    def toggle_armed(self):
+        """Toggle armed state and update LED"""
+        self.armed = not self.armed
+        self._update_armed_led()
+        print(f">>> ROBOT {'ARMED' if self.armed else 'DISARMED'} <<<")
+
+    def _update_armed_led(self):
+        """Update armed LED based on armed state"""
+        if self.armed:
+            self.lights.led_on('armed')
+        else:
+            self.lights.led_off('armed')
 
     # Tyto metody bude volat JAKÝKOLIV ovladač
     def set_movement(self, speed, turn):
@@ -42,6 +59,10 @@ class RobotLogic:
         self.turret_speed_tilt = tilt_speed
 
     async def fire_weapon(self):
+        """Fire weapon only if armed"""
+        if not self.armed:
+            print("!!! GUN DISABLED: Robot not armed !!!")
+            return
         await self.gun.fire_shot()
     
     def set_laser(self, state: bool):

@@ -146,6 +146,8 @@ class XboxController:
                 self.logic.stop_weapon_manual()
         elif code == config.BTN_Y:
             self.logic.toggle_laser()
+        elif code == config.BTN_START:
+            self.logic.toggle_armed()
 
     def _handle_long_press(self, code, nazev, duration):
         """Handle long button press (>= 2 seconds)."""
