@@ -19,6 +19,7 @@ SAFETY_TIMEOUT = 2.0  # seconds (2000 ms = 2.0 s)
 # Nastavení ovladače
 # Cesta k zařízení (po spárování přes bluetooth se objeví v /dev/input/)
 GAMEPAD_DEVICE = '/dev/input/event0'
+BTN_HOLD_TIME = 1.0  # seconds pro dlouhý stisk
 
 # Xbox ovladač
 BTN_A = 304  # Příklad kódu pro tlačítko A

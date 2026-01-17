@@ -14,6 +14,9 @@ class XboxController:
         self.turn = 0.0
         self.turret_pan = 0.0
         self.turret_tilt = 0.0
+        
+        # Dictionary to track button press start times
+        self.press_times = {}
 
     async def connect(self, timeout=20):
         """
@@ -65,18 +68,30 @@ class XboxController:
         """
         # --- 1. TLAČÍTKA - bereme slovník z configu ---
         if event.type == ecodes.EV_KEY:
+            nazev = config.BUTTON_MAP.get(event.code, f"Neznámé {event.code}")
 
-            if event.value == 1:
-                nazev = config.BUTTON_MAP.get(event.code, f"Neznámé {event.code}")
+            if event.value == 1:  # PRESS (DOWN)
                 print(f"STISK: {nazev}")
+                self.press_times[event.code] = event.timestamp()
 
-                # Další chování (přidáno pro kompatibilitu se stávající logikou)
-                if event.code == config.BTN_A:
-                    asyncio.create_task(self.logic.fire_weapon())
-                elif event.code == config.BTN_B:
-                    # Pokud máš v logice manuální stop, zavoláme ji
-                    if hasattr(self.logic, 'stop_weapon_manual'):
-                        self.logic.stop_weapon_manual()
+            elif event.value == 0:  # RELEASE (UP)
+                print(f"PUŠTĚNÍ: {nazev}")
+                
+                if event.code in self.press_times:
+                    duration = event.timestamp() - self.press_times[event.code]
+                    print(f"   -> Drženo po dobu: {duration:.2f} sekund")
+                    
+                    # Logic based on press duration
+                    if duration > config.BTN_HOLD_TIME:
+                        print(f"   -> (Dlouhý stisk!)")
+                        self._handle_long_press(event.code, nazev, duration)
+                    else:
+                        self._handle_short_press(event.code, nazev, duration)
+                    
+                    del self.press_times[event.code]
+
+            elif event.value == 2:  # HOLD
+                print(f"DRŽENÍ: {nazev}")
 
         # --- 2. OSY - porovnáváme s ID z configu ---
         elif event.type == ecodes.EV_ABS:
@@ -102,7 +117,7 @@ class XboxController:
 
             elif event.code == config.AXIS_GAS:
                 print(f"PLYN: {self.map_trigger(event.value)}%")
-                val = self._map_trigger(event.value)
+                # val = self._map_trigger(event.value)
                 # Příklad: pokud je plyn více než 50%, vystřelíme
                 # if val > 50:
                 #     asyncio.create_task(self.logic.fire_weapon())
@@ -117,6 +132,21 @@ class XboxController:
             elif event.code == config.AXIS_DPAD_Y:
                 smery = {-1: "Nahoru", 1: "Dolů", 0: "Střed"}
                 print(f"D-PAD Y: {smery.get(event.value)}")
+
+    def _handle_short_press(self, code, nazev, duration):
+        """Handle short button press (< 2 seconds)."""
+        if code == config.BTN_A:
+            asyncio.create_task(self.logic.fire_weapon())
+        elif code == config.BTN_B:
+            if hasattr(self.logic, 'stop_weapon_manual'):
+                self.logic.stop_weapon_manual()
+        elif code == config.BTN_Y:
+            self.logic.toggle_laser()
+
+    def _handle_long_press(self, code, nazev, duration):
+        """Handle long button press (>= 2 seconds)."""
+        # Add your long-press logic here
+        pass
 
     def _map_axis(self, value):
         """
