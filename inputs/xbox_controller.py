@@ -81,8 +81,11 @@ class XboxController:
                     duration = event.timestamp() - self.press_times[event.code]
                     # print(f"   -> Drženo po dobu: {duration:.2f} sekund")
                     
-                    # Logic based on press duration
-                    if duration > config.BTN_HOLD_TIME:
+                    # Check if button supports long press
+                    supports_long_press = event.code in config.LONG_PRESS_BUTTONS
+                    
+                    # Logic based on press duration (only if button supports long press)
+                    if supports_long_press and duration > config.BTN_HOLD_TIME:
                         print(f"   -> (Dlouhý stisk!, {duration:.2f} sekund)")
                         self._handle_long_press(event.code, nazev, duration)
                     else:
@@ -151,8 +154,10 @@ class XboxController:
 
     def _handle_long_press(self, code, nazev, duration):
         """Handle long button press (>= 2 seconds)."""
-        # Add your long-press logic here
-        pass
+        print(f"   -> BUTTON {nazev} long pressed for {duration:.2f} seconds.")
+        if code == config.BTN_A:
+            # Add long press logic for A button (e.g., continuous firing, rapid fire, etc.)
+            pass  # Placeholder for long press action
 
     def _map_axis(self, value):
         """

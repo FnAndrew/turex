@@ -51,6 +51,9 @@ BTN_START = 315
 BTN_BACK = 314
 BTN_XBOX = 316
 
+# Buttons that support long press (others use short press only)
+LONG_PRESS_BUTTONS = [BTN_A]
+
 # Axis codes
 AXIS_LX = 0    # Left stick X
 AXIS_LY = 1    # Left stick Y
