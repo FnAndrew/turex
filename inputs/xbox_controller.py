@@ -59,7 +59,7 @@ class XboxController:
         except OSError:
             print("CHYBA: Ovladač byl odpojen!")
             # Bezpečně zastavíme robota
-            self.logic.zastavit_vse()
+            self.logic.stop_all()
 
     def _handle_event(self, event):
         """
