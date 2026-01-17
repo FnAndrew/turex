@@ -1,18 +1,13 @@
 from gpiozero import OutputDevice, Button
 import asyncio
 
-# --- GPIO PIN CONFIGURATION (BCM numbering for Raspberry Pi) ---
-# Adjust pin numbers according to your Raspberry Pi setup (GPIO 6 and GPIO 2)
-mosfet = OutputDevice(6, active_high=True, initial_value=False)  # MOSFET control
-sensor = Button(2, pull_up=True, bounce_time=None)  # End-stop sensor
-
-# --- VARIABLES ---
-SAFETY_TIMEOUT = 2.0  # seconds (2000 ms = 2.0 s)
-
 class Gun:
-    def __init__(self):
+    def __init__(self, sensor_pin, mosfet_pin, safety_timeout):
         self.firing_in_progress = False
         self.start_time = 0.0
+        self.safety_timeout = safety_timeout
+        self.mosfet = OutputDevice(mosfet_pin, active_high=True, initial_value=False)
+        self.sensor = Button(sensor_pin, pull_up=True, bounce_time=None)
 
     async def fire_shot(self):
         """Starts the firing process if not already in progress."""
@@ -20,7 +15,7 @@ class Gun:
             return
 
         print("--> START: Initiating firing cycle...")
-        mosfet.on()  # Turn on the MOSFET
+        self.mosfet.on()  # Turn on the MOSFET
         self.firing_in_progress = True
         self.start_time = asyncio.get_event_loop().time()  # Record the start time
 
@@ -30,12 +25,12 @@ class Gun:
                 current_time = asyncio.get_event_loop().time()
 
                 # A) End-stop sensor check (Cut-off)
-                if sensor.is_pressed:
+                if self.sensor.is_pressed:
                     self.stop_firing("DONE: Sensor triggered (cycle complete)")
                     break
 
                 # B) Safety timeout check
-                elif (current_time - self.start_time) > SAFETY_TIMEOUT:
+                elif (current_time - self.start_time) > self.safety_timeout:
                     self.stop_firing("ERROR: Timeout (motor running too long)")
                     break
 
@@ -47,6 +42,6 @@ class Gun:
 
     def stop_firing(self, reason):
         """Stops the firing process and logs the reason."""
-        mosfet.off()  # Turn off the MOSFET
+        self.mosfet.off()  # Turn off the MOSFET
         self.firing_in_progress = False
         print(f"--> STOP: {reason}")

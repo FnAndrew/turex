@@ -11,9 +11,10 @@ SERVO_PAN_PIN = 12  # Horizontální
 SERVO_TILT_PIN = 13 # Vertikální
 LASER_PIN = 16
 
-# Zbraň a efekty
-GUN_TRIGGER_PIN = 26
-LED_PIN = 19
+# Zbraň a efekty # TODO: Nastavit správné piny
+GUN_SENZOR_PIN = 6
+GUN_MOSFET_PIN = 5
+SAFETY_TIMEOUT = 2.0  # seconds (2000 ms = 2.0 s)
 
 # Nastavení ovladače
 # Cesta k zařízení (po spárování přes bluetooth se objeví v /dev/input/)
@@ -26,3 +27,12 @@ BTN_TR = 311 # Pravý Bumper (R1)
 
 # Deadzone pro páčky (aby robot neujizdel sam)
 DEADZONE = 4000 # Pro rozsah 0-65535 je střed cca 32000, 4000 je ok tolerance
+
+# LED pins (multiple LEDs with labels)
+LED_PINS = {
+    'status': 19,      # Status LED (original LED_PIN)
+    'indicator': 20,   # Indicator LED
+    'armed': 21,       # Armed LED
+}
+
+LASER_PIN = 16

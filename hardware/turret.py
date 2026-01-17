@@ -21,5 +21,12 @@ class Turret:
         self.tilt_angle = max(-45, min(45, self.tilt_angle + delta_tilt))
 
     def set_laser(self, on: bool):
-        if on: self.laser.on()
-        else: self.laser.off()
+        """Control laser on/off."""
+        if on:
+            self.laser.on()
+        else:
+            self.laser.off()
+    
+    def toggle_laser(self):
+        """Toggle laser on/off."""
+        self.laser.toggle()

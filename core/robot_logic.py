@@ -1,10 +1,11 @@
 import asyncio
 
 class RobotLogic:
-    def __init__(self, drivetrain, turret, gun):
+    def __init__(self, drivetrain, turret, gun, lights):
         self.drive = drivetrain
         self.turret = turret
         self.gun = gun
+        self.lights = lights
 
     # Tyto metody bude volat JAKÝKOLIV ovladač
     def set_movement(self, speed, turn):
@@ -21,15 +22,20 @@ class RobotLogic:
         await self.gun.fire_shot()
     
     def set_laser(self, state: bool):
+        """Control laser on/off via turret."""
         self.turret.set_laser(state)
+        
+    def toggle_laser(self):
+        """Toggle laser on/off via turret."""
+        self.turret.toggle_laser()
 
     def stop_all(self):
         self.drive.stop()
         self.turret.set_laser(False)
+        self.lights.cleanup()
         # Další bezpečnostní kroky...
 
     async def loop(self):
-        # Stejné jako předtím - pravidelný update hardwaru
         while True:
             await self.drive.update()
             # Aplikace pohybu věže...

@@ -7,6 +7,7 @@ from gpiozero import Button
 from hardware.drivetrain import Drivetrain
 from hardware.turret import Turret
 from hardware.gun import Gun
+from hardware.lights import Lights
 
 # --- Import logiky ---
 from core.robot_logic import RobotLogic
@@ -36,8 +37,9 @@ async def main():
             config.SERVO_PAN_PIN, config.SERVO_TILT_PIN, config.LASER_PIN
         )
         gun = Gun(
-            config.GUN_TRIGGER_PIN, config.LED_PIN
+            config.GUN_SENZOR_PIN, config.GUN_MOSFET_PIN, config.SAFETY_TIMEOUT
         )
+        lights = Lights()
     except Exception as e:
         print(f"CHYBA HARDWARU: {e}")
         return
@@ -45,7 +47,7 @@ async def main():
     # ---------------------------------------------------------
     # 2. Inicializace Mozku (Logiky)
     # ---------------------------------------------------------
-    logic = RobotLogic(dt, turret, gun)
+    logic = RobotLogic(dt, turret, gun, lights)
 
     # ---------------------------------------------------------
     # 3. Volba vstupu podle přepínače
