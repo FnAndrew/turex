@@ -8,6 +8,10 @@ MOTOR_RR_PINS = (5, 6)    # Rear Right - OK (FIXED: No longer conflicts with gun
 # Using hardware PWM pins for smooth servo control
 SERVO_PAN_PIN = 12   # Horizontal (PWM0)
 SERVO_TILT_PIN = 13  # Vertical (PWM1)
+SERVO_PAN_MIN_ANGLE = -135
+SERVO_PAN_MAX_ANGLE = 135
+SERVO_TILT_MIN_ANGLE = -90
+SERVO_TILT_MAX_ANGLE = 90
 
 # === WEAPON SYSTEM ===
 # FIXED: Changed from conflicting pins 5, 6
@@ -47,10 +51,10 @@ BTN_TR = 311  # Right Bumper
 # Axis codes
 AXIS_LX = 0    # Left stick X
 AXIS_LY = 1    # Left stick Y
-AXIS_RX = 3    # Right stick X
-AXIS_RY = 4    # Right stick Y
-AXIS_GAS = 5
-AXIS_BRAKE = 2
+AXIS_RX = 2    # Right stick X
+AXIS_RY = 5    # Right stick Y
+AXIS_GAS = 9
+AXIS_BRAKE = 10
 AXIS_DPAD_X = 16
 AXIS_DPAD_Y = 17
 
@@ -61,5 +65,6 @@ DEADZONE = 4000
 BUTTON_MAP = {
     304: "A", 305: "B", 307: "X", 308: "Y",
     310: "LB", 311: "RB", 314: "Select", 315: "Start",
-    316: "Xbox Button", 317: "L3", 318: "R3"
+    316: "Xbox Button", 317: "L3", 318: "R3",
+    167: "Share Button"
 }

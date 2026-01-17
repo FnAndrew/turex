@@ -1,11 +1,12 @@
 from gpiozero import AngularServo, LED
+import config
 
 class Turret:
     def __init__(self, pan_pin, tilt_pin, laser_pin):
         # Pan servo: 270° range (-135° to +135°)
-        self.pan_servo = AngularServo(pan_pin, min_angle=-135, max_angle=135)
+        self.pan_servo = AngularServo(pan_pin, min_angle=config.SERVO_PAN_MIN_ANGLE, max_angle=config.SERVO_PAN_MAX_ANGLE)
         # Tilt servo: 180° range (-90° to +90°)
-        self.tilt_servo = AngularServo(tilt_pin, min_angle=-90, max_angle=90)
+        self.tilt_servo = AngularServo(tilt_pin, min_angle=config.SERVO_TILT_MIN_ANGLE, max_angle=config.SERVO_TILT_MAX_ANGLE)
         self.laser = LED(laser_pin)
         
         # Start at center position
@@ -13,10 +14,10 @@ class Turret:
         self.tilt_angle = 0
         
         # Boundaries
-        self.pan_min = -135
-        self.pan_max = 135
-        self.tilt_min = -90
-        self.tilt_max = 90
+        self.pan_min = config.SERVO_PAN_MIN_ANGLE
+        self.pan_max = config.SERVO_PAN_MAX_ANGLE
+        self.tilt_min = config.SERVO_TILT_MIN_ANGLE
+        self.tilt_max = config.SERVO_TILT_MAX_ANGLE
 
     async def update(self):
         """Aktualizuje polohu serv"""
