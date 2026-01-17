@@ -5,25 +5,23 @@ import config
 
 class XboxController:
     def __init__(self, logic_controller):
-        self.target_name = "Xbox"  # Část názvu zařízení, kterou hledáme
+        self.target_name = "Xbox"
         self.logic = logic_controller
         self.device = None
         
-        # Interní stavové proměnné (pro uchování hodnoty jedné osy, zatímco se mění druhá)
         self.speed = 0.0
         self.turn = 0.0
         self.turret_pan = 0.0
         self.turret_tilt = 0.0
         
-        # Dictionary to track button press start times
         self.press_times = {}
 
     async def connect(self, timeout=20):
         """
-        Pokusí se najít Xbox ovladač. Čeká max 'timeout' sekund.
+        Attempts to find Xbox controller. Waits max 'timeout' seconds.
         """
-        print(f"Hledám ovladač '{self.target_name}' (Čekám max {timeout}s)...")
-        print(f"MAC (z configu): {config.XBOX_MAC}")
+        print(f"Looking for controller '{self.target_name}' (waiting max {timeout}s)...")
+        print(f"MAC (from config): {config.XBOX_MAC}")
         
         for i in range(timeout):
             devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
@@ -31,116 +29,102 @@ class XboxController:
             for dev in devices:
                 if self.target_name in dev.name:
                     self.device = dev
-                    print(f"-> ÚSPĚCH: Nalezen {dev.name} na {dev.phys}")
+                    print(f"-> SUCCESS: Found {dev.name} on {dev.phys}")
                     return True
             
-            # Pokud nenalezeno, počkáme 1s a zkusíme znovu
             if i < timeout - 1:
                 await asyncio.sleep(1)
         
-        print(f"\n-> TIMEOUT: Ovladač nenalezen.")
+        print(f"\n-> TIMEOUT: Controller not found.")
         return False
 
     async def listen(self):
         """
-        Hlavní asynchronní smyčka pro čtení vstupů.
+        Main asynchronous loop for reading inputs.
         """
         if not self.device:
-            print("Chyba: Ovladač není připojen, nemohu číst.")
+            print("Error: Controller not connected, cannot read.")
             return
 
-        print(f"Začínám číst vstupy z {self.device.name} na {self.device.phys}...")
+        print(f"Starting to read inputs from {self.device.name} on {self.device.phys}...")
         
         try:
-            # async_read_loop neblokuje zbytek programu!
             async for event in self.device.async_read_loop():
                 self._handle_event(event)
                 
         except OSError:
-            print("CHYBA: Ovladač byl odpojen!")
-            # Bezpečně zastavíme robota
+            print("ERROR: Controller was disconnected!")
             self.logic.stop_all()
 
     def _handle_event(self, event):
         """
-        Zpracování jedné události (stisk tlačítka nebo pohyb páčky).
-        Zde mapujeme kódy z evdev na funkce robota.
+        Process single event (button press or stick movement).
         """
-        # --- 1. TLAČÍTKA - bereme slovník z configu ---
+        # Buttons
         if event.type == ecodes.EV_KEY:
-            nazev = config.BUTTON_MAP.get(event.code, f"Neznámé {event.code}")
+            button_name = config.BUTTON_MAP.get(event.code, f"Unknown {event.code}")
 
             if event.value == 1:  # PRESS (DOWN)
-                print(f"STISK: {nazev}")
+                print(f"PRESS: {button_name}")
                 self.press_times[event.code] = event.timestamp()
 
             elif event.value == 0:  # RELEASE (UP)
-                print(f"PUŠTĚNÍ: {nazev}")
+                print(f"RELEASE: {button_name}")
                 
                 if event.code in self.press_times:
                     duration = event.timestamp() - self.press_times[event.code]
-                    # print(f"   -> Drženo po dobu: {duration:.2f} sekund")
                     
-                    # Check if button supports long press
                     supports_long_press = event.code in config.LONG_PRESS_BUTTONS
                     
-                    # Logic based on press duration (only if button supports long press)
                     if supports_long_press and duration > config.BTN_HOLD_TIME:
-                        print(f"   -> (Dlouhý stisk!, {duration:.2f} sekund)")
-                        self._handle_long_press(event.code, nazev, duration)
+                        print(f"   -> (Long press! {duration:.2f} seconds)")
+                        self._handle_long_press(event.code, button_name, duration)
                     else:
-                        self._handle_short_press(event.code, nazev, duration)
+                        self._handle_short_press(event.code, button_name, duration)
                     
                     del self.press_times[event.code]
 
             elif event.value == 2:  # HOLD
-                print(f"DRŽENÍ: {nazev}")
+                print(f"HOLD: {button_name}")
 
-        # --- 2. OSY - porovnáváme s ID z configu ---
+        # Axes
         elif event.type == ecodes.EV_ABS:
 
             if event.code == config.AXIS_LX:
-                print(f"Levá X: {self.map_axis_stick(event.value)}%")
-                # Zachováme původní mapování na pohyb
+                print(f"Left X: {self.map_axis_stick(event.value)}%")
                 self.turn = self._map_axis(event.value)
                 self.logic.set_movement(self.speed, self.turn)
 
             elif event.code == config.AXIS_LY:
-                print(f"Levá Y: {self.map_axis_stick(event.value)}%")
+                print(f"Left Y: {self.map_axis_stick(event.value)}%")
                 self.speed = -self._map_axis(event.value)
                 self.logic.set_movement(self.speed, self.turn)
 
             elif event.code == config.AXIS_RX:
                 self.turret_pan = self._map_axis(event.value)
-                print(f"Pravá X: {self.turret_pan}% -> Turret Pan Speed")
-                # Send speed to turret (stick position = rotation speed)
+                print(f"Right X: {self.turret_pan}% -> Turret Pan Speed")
                 self.logic.move_turret(self.turret_pan / 100.0, self.turret_tilt / 100.0)
 
             elif event.code == config.AXIS_RY:
                 self.turret_tilt = -self._map_axis(event.value)
-                print(f"Pravá Y: {self.turret_tilt}% -> Turret Tilt Speed")
-                # Send speed to turret (stick position = rotation speed)
+                print(f"Right Y: {self.turret_tilt}% -> Turret Tilt Speed")
                 self.logic.move_turret(self.turret_pan / 100.0, self.turret_tilt / 100.0)
 
             elif event.code == config.AXIS_GAS:
-                print(f"PLYN: {self.map_trigger(event.value)}%")
-                # val = self._map_trigger(event.value)
-                # Příklad: pokud je plyn více než 50%, vystřelíme
-                # if val > 50:
-                #     asyncio.create_task(self.logic.fire_weapon())
+                print(f"GAS: {self.map_trigger(event.value)}%")
 
             elif event.code == config.AXIS_BRAKE:
-                print(f"BRZDA: {self.map_trigger(event.value)}%")
+                print(f"BRAKE: {self.map_trigger(event.value)}%")
 
             elif event.code == config.AXIS_DPAD_X:
-                smery = {-1: "Vlevo", 1: "Vpravo", 0: "Střed"}
-                print(f"D-PAD X: {smery.get(event.value)}")
+                directions = {-1: "Left", 1: "Right", 0: "Center"}
+                print(f"D-PAD X: {directions.get(event.value)}")
 
             elif event.code == config.AXIS_DPAD_Y:
-                smery = {-1: "Nahoru", 1: "Dolů", 0: "Střed"}
-                print(f"D-PAD Y: {smery.get(event.value)}")
+                directions = {-1: "Up", 1: "Down", 0: "Center"}
+                print(f"D-PAD Y: {directions.get(event.value)}")
 
-    def _handle_short_press(self, code, nazev, duration):
+    def _handle_short_press(self, code, button_name, duration):
         """Handle short button press (< 2 seconds)."""
         if code == config.BTN_A:
             asyncio.create_task(self.logic.fire_weapon())
@@ -152,26 +136,25 @@ class XboxController:
         elif code == config.BTN_START:
             self.logic.toggle_armed()
 
-    def _handle_long_press(self, code, nazev, duration):
+    def _handle_long_press(self, code, button_name, duration):
         """Handle long button press (>= 2 seconds)."""
-        print(f"   -> BUTTON {nazev} long pressed for {duration:.2f} seconds.")
+        print(f"   -> BUTTON {button_name} long pressed for {duration:.2f} seconds.")
         if code == config.BTN_A:
             # Add long press logic for A button (e.g., continuous firing, rapid fire, etc.)
             pass  # Placeholder for long press action
 
     def _map_axis(self, value):
         """
-        Převede surovou hodnotu (0-65535) na rozsah -100 až 100 (nebo -1.0 až 1.0).
-        Používá DEADZONE z configu.
+        Convert raw value (0-65535) to range -100 to 100.
+        Uses DEADZONE from config.
         """
         centered = value - 32768
         
-        # Aplikace Deadzone (z configu)
+        # Deadzone check
         if abs(centered) < config.DEADZONE:
             return 0.0
-            
-        # Normalizace na procenta (-100 až 100)
-        # Pokud chceš raději -1.0 až 1.0, smaž "* 100"
+        
+        # Normalize from -100 to 100
         percent = (centered / 32768.0) * 100
         return int(percent)
 
@@ -195,12 +178,5 @@ class XboxController:
         try:
             pct = int(round((value / float(maxv)) * 100))
         except Exception:
-            pct = int(self._map_trigger(value))
+            pct = int(int((value / 1023.0) * 100))
         return max(0, min(100, pct))
-
-
-    def _map_trigger(self, value):
-        """
-        Převede trigger (0-1023) na 0-100%.
-        """
-        return int((value / 1023.0) * 100)

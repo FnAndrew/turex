@@ -32,9 +32,8 @@ class RobotLogic:
         else:
             self.lights.led_off('armed')
 
-    # Tyto metody bude volat JAKÝKOLIV ovladač
     def set_movement(self, speed, turn):
-        """ speed: -1.0 až 1.0, turn: -1.0 až 1.0 """
+        """speed: -1.0 to 1.0, turn: -1.0 to 1.0"""
         self.drive.set_move(speed, turn)
 
     def set_turret_position(self, pan_percent, tilt_percent):
@@ -44,17 +43,13 @@ class RobotLogic:
             pan_percent: -100 to +100 (left to right)
             tilt_percent: -100 to +100 (down to up)
         """
-        # Map -100..+100 to servo angle ranges
-        # Pan: -100..+100 -> -135..+135 degrees
         pan_angle = (pan_percent / 100.0) * 135
-        # Tilt: -100..+100 -> -90..+90 degrees
         tilt_angle = (tilt_percent / 100.0) * 90
         
         self.turret.set_position(pan_angle, tilt_angle)
 
     def move_turret(self, pan_speed, tilt_speed):
-        """ Rychlost otáčení věže (pro jiné ovladače) """
-        # Uložíme si rychlosti a aplikujeme je v loop()
+        """Turret rotation speed (for other controllers)"""
         self.turret_speed_pan = pan_speed
         self.turret_speed_tilt = tilt_speed
 
@@ -77,26 +72,18 @@ class RobotLogic:
         self.drive.stop()
         self.turret.set_laser(False)
         self.lights.cleanup()
-        # Další bezpečnostní kroky...
 
     async def loop(self):
         """Main robot control loop"""
         while True:
-            # Update drivetrain
             await self.drive.update()
             
-            # Update turret movement from stored speeds
-            # Convert speed (-1.0 to 1.0) to angle delta per cycle
             if self.turret_speed_pan != 0 or self.turret_speed_tilt != 0:
-                # Speed multiplier: degrees per cycle (adjust for sensitivity)
-                # Pan: 270° range, use larger multiplier for faster movement
-                delta_pan = self.turret_speed_pan * 8  # Max ~8 degrees per 0.02s cycle
-                # Tilt: 180° range
-                delta_tilt = self.turret_speed_tilt * 5  # Max ~5 degrees per 0.02s cycle
+                delta_pan = self.turret_speed_pan * 8
+                delta_tilt = self.turret_speed_tilt * 5
                 
                 self.turret.move(delta_pan, delta_tilt)
             
-            # Always update turret to apply new position
             await self.turret.update()
             
             await asyncio.sleep(0.02)

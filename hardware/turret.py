@@ -20,7 +20,7 @@ class Turret:
         self.tilt_max = config.SERVO_TILT_MAX_ANGLE
 
     async def update(self):
-        """Aktualizuje polohu serv"""
+        """Update servo positions"""
         self.pan_servo.angle = self.pan_angle
         self.tilt_servo.angle = self.tilt_angle
 
@@ -35,7 +35,7 @@ class Turret:
         self.tilt_angle = max(self.tilt_min, min(self.tilt_max, tilt_angle))
 
     def move(self, delta_pan, delta_tilt):
-        """Příčte změnu úhlu (např. z joysticku) k aktuální poloze"""
+        """Add change in angle to current position"""
         self.pan_angle = max(self.pan_min, min(self.pan_max, self.pan_angle + delta_pan))
         self.tilt_angle = max(self.tilt_min, min(self.tilt_max, self.tilt_angle + delta_tilt))
 

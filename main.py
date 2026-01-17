@@ -3,28 +3,26 @@ import sys
 import config
 from gpiozero import Button
 
-# --- Importy hardwaru ---
+# Hardware imports
 from hardware.drivetrain import Drivetrain
 from hardware.turret import Turret
 from hardware.gun import Gun
 from hardware.lights import Lights
 
-# --- Import logiky ---
+# Logic imports
 from core.robot_logic import RobotLogic
 
-# --- Importy vstupů ---
+# Input imports
 from inputs.xbox_controller import XboxController
 from inputs.elrs_input import ElrsInput
 
 async def main():
-    print("=== STARTUJI SYSTÉM BATTLE ROBOT ===")
+    print("=== STARTING BATTLE ROBOT SYSTEM ===")
 
-    # ---------------------------------------------------------
-    # 1. Inicializace Hardwaru
-    # ---------------------------------------------------------
-    print("-> Inicializace hardwaru...")
+    # Hardware initialization
+    print("-> Initializing hardware...")
     try:
-        dt = Drivetrain(
+        drivetrain = Drivetrain(
             config.MOTOR_FL_PINS, config.MOTOR_FR_PINS, 
             config.MOTOR_RL_PINS, config.MOTOR_RR_PINS
         )
@@ -32,36 +30,31 @@ async def main():
             config.SERVO_PAN_PIN, config.SERVO_TILT_PIN, config.LASER_PIN
         )
         gun = Gun(
-            config.GUN_SENZOR_PIN, config.GUN_MOSFET_PIN, config.SAFETY_TIMEOUT
+            config.GUN_SENSOR_PIN, config.GUN_MOSFET_PIN, config.SAFETY_TIMEOUT
         )
         lights = Lights()
     except Exception as e:
-        print(f"CHYBA HARDWARU: {e}")
+        print(f"HARDWARE ERROR: {e}")
         return
 
-    # ---------------------------------------------------------
-    # 2. Inicializace Mozku (Logiky)
-    # ---------------------------------------------------------
-    logic = RobotLogic(dt, turret, gun, lights)
+    # Logic initialization
+    logic = RobotLogic(drivetrain, turret, gun, lights)
 
-    # ---------------------------------------------------------
-    # 3. Volba vstupu podle přepínače
-    # ---------------------------------------------------------
+    # Input selection based on mode switch
     mode_switch = Button(config.MODE_SWITCH_PIN, pull_up=True)
     input_system = None
 
     if mode_switch.is_pressed:
-        # --- REŽIM 1: ELRS ---
-        print("\n[REŽIM] Detekován ELRS (Radiomaster)")
+        # Mode 1: ELRS
+        print("\n[MODE] ELRS (Radiomaster) detected")
         input_system = ElrsInput('/dev/ttyAMA0', logic)
 
     else:
-        # --- REŽIM 2: XBOX ---
+        # Mode 2: Xbox
         print("\n[MODE] Xbox Controller detected")
         
         input_system = XboxController(logic)
         
-        # Wait up to 30 seconds for controller to connect
         print("Please turn on the controller...")
         is_connected = await input_system.connect(timeout=30)
         
@@ -69,31 +62,26 @@ async def main():
             print("\n!!! Failed to connect controller !!!")
             return
 
-    # ---------------------------------------------------------
-    # 4. Spuštění smyček
-    # ---------------------------------------------------------
-    print("\n>>> ROBOT PŘIPRAVEN K AKCI <<<")
-    print("Stiskni Ctrl+C pro ukončení.")
+    # Start loops
+    print("\n>>> ROBOT READY FOR ACTION <<<")
+    print("Press Ctrl+C to exit.")
 
     try:
-        # Spustíme paralelně naslouchání vstupu a hlavní smyčku logiky
         await asyncio.gather(
             input_system.listen(),
             logic.loop()
         )
     except asyncio.CancelledError:
-        print("Úlohy zrušeny.")
+        print("Tasks cancelled.")
     finally:
-        # Tento blok se provede VŽDY při ukončení (i při chybě)
-        print("\n-> Vypínám systém...")
+        print("\n-> Shutting down system...")
         
         logic.stop_all()
         
-        print("Systém vypnut.")
+        print("System shutdown.")
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        # Zachycení Ctrl+C, aby to nevypisovalo ošklivý traceback
-        print("\nUživatel ukončil program.")
+        print("\nUser terminated program.")

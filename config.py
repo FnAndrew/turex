@@ -15,7 +15,7 @@ SERVO_TILT_MAX_ANGLE = 90
 
 # === WEAPON SYSTEM ===
 # FIXED: Changed from conflicting pins 5, 6
-GUN_SENZOR_PIN = 26  # End-stop sensor (was 6)
+GUN_SENSOR_PIN = 26  # End-stop sensor (was 6)
 GUN_MOSFET_PIN = 19  # Motor control (was 5)
 SAFETY_TIMEOUT = 2.0  # seconds
 
