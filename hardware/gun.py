@@ -9,7 +9,11 @@ class Gun:
         self.mosfet = OutputDevice(mosfet_pin, active_high=True, initial_value=False)
         self.sensor = Button(sensor_pin, pull_up=True, bounce_time=None)
 
-    async def fire_shot(self):
+    async def fire_shot(self, logic):  # Pass logic reference
+        if not logic.gun_armed:
+            print("!!! GUN DISABLED: Not armed !!!")
+            return
+
         """Starts the firing process if not already in progress."""
         if self.firing_in_progress:
             return

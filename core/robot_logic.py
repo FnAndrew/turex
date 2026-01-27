@@ -11,26 +11,22 @@ class RobotLogic:
         self.gun = gun
         self.lights = lights
         
+        # Runtime state
+        self.gun_armed = False
+        
         # Turret speed storage
         self.turret_speed_pan = 0.0
         self.turret_speed_tilt = 0.0
         
-        # Armed state
-        self.armed = False
-        self._update_armed_led()
-
+        # Sync armed LED on startup
+        self.lights.set_led_brightness('armed', 0.0)
+    
     def toggle_armed(self):
-        """Toggle armed state and update LED"""
-        self.armed = not self.armed
-        self._update_armed_led()
-        print(f">>> ROBOT {'ARMED' if self.armed else 'DISARMED'} <<<")
-
-    def _update_armed_led(self):
-        """Update armed LED based on armed state"""
-        if self.armed:
-            self.lights.led_on('armed')
-        else:
-            self.lights.led_off('armed')
+        """Toggle gun armed state and sync LED."""
+        self.gun_armed = not self.gun_armed
+        self.lights.set_led_brightness('armed', 1.0 if self.gun_armed else 0.0)
+        status = "ARMED" if self.gun_armed else "DISARMED"
+        print(f">>> ROBOT {status} <<<")
 
     def set_movement(self, speed, turn):
         """speed: -1.0 to 1.0, turn: -1.0 to 1.0"""
@@ -55,10 +51,10 @@ class RobotLogic:
 
     async def fire_weapon(self):
         """Fire weapon only if armed"""
-        if not self.armed:
+        if not self.gun_armed:
             print("!!! GUN DISABLED: Robot not armed !!!")
             return
-        await self.gun.fire_shot()
+        await self.gun.fire_shot(self)
     
     def set_laser(self, state: bool):
         """Control laser on/off via turret."""
