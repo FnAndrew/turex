@@ -39,6 +39,32 @@ class Turret:
         self.pan_angle = max(self.pan_min, min(self.pan_max, self.pan_angle + delta_pan))
         self.tilt_angle = max(self.tilt_min, min(self.tilt_max, self.tilt_angle + delta_tilt))
 
+    async def default_position(self, speed=1.5):
+        """Return turret to default center position with smooth movement
+        
+        Args:
+            speed: Movement speed in degrees per update (default 1.5)
+        """
+        while abs(self.pan_angle) > speed or abs(self.tilt_angle) > speed:
+            # Pan movement
+            if self.pan_angle > 0:
+                self.pan_angle = max(self.pan_angle - speed, 0)
+            elif self.pan_angle < 0:
+                self.pan_angle = min(self.pan_angle + speed, 0)
+            
+            # Tilt movement
+            if self.tilt_angle > 0:
+                self.tilt_angle = max(self.tilt_angle - speed, 0)
+            elif self.tilt_angle < 0:
+                self.tilt_angle = min(self.tilt_angle + speed, 0)
+            
+            await self.update()
+        
+        # Final position to ensure exact center
+        self.pan_angle = 0
+        self.tilt_angle = 0
+        await self.update()
+
     def set_laser(self, on: bool):
         """Control laser on/off."""
         if on:

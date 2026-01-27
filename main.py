@@ -76,7 +76,7 @@ async def main():
     finally:
         print("\n-> Shutting down system...")
         
-        logic.stop_all()
+        await logic.stop_all()
         
         print("System shutdown.")
 

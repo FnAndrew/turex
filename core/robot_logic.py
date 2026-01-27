@@ -68,9 +68,10 @@ class RobotLogic:
         """Toggle laser on/off via turret."""
         self.turret.toggle_laser()
 
-    def stop_all(self):
+    async def stop_all(self):
         self.drive.stop()
         self.turret.set_laser(False)
+        await self.turret.default_position()
         self.lights.cleanup()
 
     async def loop(self):
