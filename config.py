@@ -26,7 +26,7 @@ LASER_PIN = 16  # OK
 LED_PINS = {
     'status': 20,      # Status LED (changed from 19 to avoid gun conflict)
     'indicator': 21,   # Indicator LED
-    'armed': 4,        # Armed LED (changed from 21 to avoid mode switch)
+    'armed': 18,        # Armed LED (changed from 21 to avoid mode switch)
 }
 
 # === MODE SWITCH ===
