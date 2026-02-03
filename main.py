@@ -78,7 +78,7 @@ async def main():
         
         await logic.stop_all()
         
-        print("System shutdown.")
+        print("System shutdown complete.")
 
 if __name__ == "__main__":
     try:

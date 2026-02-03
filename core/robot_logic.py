@@ -67,7 +67,7 @@ class RobotLogic:
     async def stop_all(self):
         self.drive.stop()
         self.turret.set_laser(False)
-        await self.turret.default_position()
+        await self.turret.shutdown()  # Changed from default_position()
         self.lights.cleanup()
 
     async def loop(self):

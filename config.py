@@ -12,6 +12,7 @@ SERVO_PAN_MIN_ANGLE = -135
 SERVO_PAN_MAX_ANGLE = 135
 SERVO_TILT_MIN_ANGLE = -90
 SERVO_TILT_MAX_ANGLE = 90
+SERVO_STATE_FILE = "turret_state.json"
 
 # === WEAPON SYSTEM ===
 # FIXED: Changed from conflicting pins 5, 6
