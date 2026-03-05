@@ -3,6 +3,8 @@ from evdev import ecodes
 import asyncio
 import config
 
+DEBUG = config.XBOX_DEBUG
+
 class XboxController:
     def __init__(self, logic_controller):
         self.target_name = "Xbox"
@@ -65,11 +67,13 @@ class XboxController:
             button_name = config.BUTTON_MAP.get(event.code, f"Unknown {event.code}")
 
             if event.value == 1:  # PRESS (DOWN)
-                print(f"PRESS: {button_name}")
+                if DEBUG:
+                    print(f"PRESS: {button_name}")
                 self.press_times[event.code] = event.timestamp()
 
             elif event.value == 0:  # RELEASE (UP)
-                print(f"RELEASE: {button_name}")
+                if DEBUG:
+                    print(f"RELEASE: {button_name}")
                 
                 if event.code in self.press_times:
                     duration = event.timestamp() - self.press_times[event.code]
@@ -77,7 +81,8 @@ class XboxController:
                     supports_long_press = event.code in config.LONG_PRESS_BUTTONS
                     
                     if supports_long_press and duration > config.BTN_HOLD_TIME:
-                        print(f"   -> (Long press! {duration:.2f} seconds)")
+                        if DEBUG:
+                            print(f"   -> (Long press! {duration:.2f} seconds)")
                         self._handle_long_press(event.code, button_name, duration)
                     else:
                         self._handle_short_press(event.code, button_name, duration)
@@ -85,44 +90,53 @@ class XboxController:
                     del self.press_times[event.code]
 
             elif event.value == 2:  # HOLD
-                print(f"HOLD: {button_name}")
+                if DEBUG:
+                    print(f"HOLD: {button_name}")
 
         # Axes
         elif event.type == ecodes.EV_ABS:
 
             if event.code == config.AXIS_LX:
-                print(f"Left X: {self.map_axis_stick(event.value)}%")
+                if DEBUG:
+                    print(f"Left X: {self.map_axis_stick(event.value)}%")
                 self.turn = self._map_axis(event.value)
                 self.logic.set_movement(self.speed, self.turn)
 
             elif event.code == config.AXIS_LY:
-                print(f"Left Y: {self.map_axis_stick(event.value)}%")
+                if DEBUG:
+                    print(f"Left Y: {self.map_axis_stick(event.value)}%")
                 self.speed = -self._map_axis(event.value)
                 self.logic.set_movement(self.speed, self.turn)
 
             elif event.code == config.AXIS_RX:
                 self.turret_pan = self._map_axis(event.value)
-                print(f"Right X: {self.turret_pan}% -> Turret Pan Speed")
+                if DEBUG:
+                    print(f"Right X: {self.turret_pan}% -> Turret Pan Speed")
                 self.logic.move_turret(self.turret_pan / 100.0, self.turret_tilt / 100.0)
 
             elif event.code == config.AXIS_RY:
                 self.turret_tilt = -self._map_axis(event.value)
-                print(f"Right Y: {self.turret_tilt}% -> Turret Tilt Speed")
+                if DEBUG:
+                    print(f"Right Y: {self.turret_tilt}% -> Turret Tilt Speed")
                 self.logic.move_turret(self.turret_pan / 100.0, self.turret_tilt / 100.0)
 
             elif event.code == config.AXIS_GAS:
-                print(f"GAS: {self.map_trigger(event.value)}%")
+                if DEBUG:
+                    print(f"GAS: {self.map_trigger(event.value)}%")
 
             elif event.code == config.AXIS_BRAKE:
-                print(f"BRAKE: {self.map_trigger(event.value)}%")
+                if DEBUG:
+                    print(f"BRAKE: {self.map_trigger(event.value)}%")
 
             elif event.code == config.AXIS_DPAD_X:
                 directions = {-1: "Left", 1: "Right", 0: "Center"}
-                print(f"D-PAD X: {directions.get(event.value)}")
+                if DEBUG:
+                    print(f"D-PAD X: {directions.get(event.value)}")
 
             elif event.code == config.AXIS_DPAD_Y:
                 directions = {-1: "Up", 1: "Down", 0: "Center"}
-                print(f"D-PAD Y: {directions.get(event.value)}")
+                if DEBUG:
+                    print(f"D-PAD Y: {directions.get(event.value)}")
 
     def _handle_short_press(self, code, button_name, duration):
         """Handle short button press (< 2 seconds)."""
@@ -138,7 +152,8 @@ class XboxController:
 
     def _handle_long_press(self, code, button_name, duration):
         """Handle long button press (>= 2 seconds)."""
-        print(f"   -> BUTTON {button_name} long pressed for {duration:.2f} seconds.")
+        if DEBUG:
+            print(f"   -> BUTTON {button_name} long pressed for {duration:.2f} seconds.")
         if code == config.BTN_A:
             # Add long press logic for A button (e.g., continuous firing, rapid fire, etc.)
             pass  # Placeholder for long press action

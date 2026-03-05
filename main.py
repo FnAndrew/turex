@@ -1,6 +1,7 @@
 import asyncio
 import sys
 import config
+import serial
 from gpiozero import Button
 
 # Hardware imports
@@ -47,9 +48,19 @@ async def main():
     if mode_switch.is_pressed:
         # Mode 1: ELRS
         print("\n[MODE] ELRS (Radiomaster) detected")
-        input_system = ElrsInput('/dev/ttyAMA0', logic)
+        
+        try:
+            # Open port with non-blocking behavior
+            serial.Serial(config.ELRS_PORT, 420000, timeout=0.01)
+        except Exception as e:
+            print(f"ELRS Error: {e}")
+            print("Switching to Xbox mode...")
+            input_system = "xbox"
+            return
+        
+        input_system = ElrsInput(config.ELRS_PORT, logic)
 
-    else:
+    elif not mode_switch.is_pressed or input_system == "xbox":
         # Mode 2: Xbox
         print("\n[MODE] Xbox Controller detected")
         

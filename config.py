@@ -37,10 +37,11 @@ MODE_SWITCH_PIN = 14  # Changed from 21 to avoid conflict with 'armed' LED
 
 # === CONTROLLER SETTINGS ===
 GAMEPAD_DEVICE = '/dev/input/event0'
-BTN_HOLD_TIME = 1.0  # seconds
+ELRS_PORT = '/dev/ttyAMA0'  # Serial port for ELRS receiver
 
-# Xbox MAC address (for reference)
-XBOX_MAC = "44:16:22:8C:36:96"
+BTN_HOLD_TIME = 1.0  # seconds
+XBOX_DEBUG = False  # Set to True to enable debug prints for Xbox controller events
+XBOX_MAC = "44:16:22:8C:36:96" # Xbox MAC address
 
 # Xbox controller button codes
 BTN_A = 304
