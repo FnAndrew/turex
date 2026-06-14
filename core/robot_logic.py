@@ -55,6 +55,10 @@ class RobotLogic:
             print("!!! GUN DISABLED: Robot not armed !!!")
             return
         await self.gun.fire_shot(self)
+        
+    def stop_weapon(self, reason="Manual stop command"):
+        """Stop weapon firing"""
+        self.gun.stop_firing(reason)
     
     def set_laser(self, state: bool):
         """Control laser on/off via turret."""

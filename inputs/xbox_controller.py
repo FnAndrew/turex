@@ -56,7 +56,7 @@ class XboxController:
                 
         except OSError:
             print("ERROR: Controller was disconnected!")
-            self.logic.stop_all()
+            await self.logic.stop_all()
 
     def _handle_event(self, event):
         """
@@ -143,8 +143,7 @@ class XboxController:
         if code == config.BTN_A:
             asyncio.create_task(self.logic.fire_weapon())
         elif code == config.BTN_B:
-            if hasattr(self.logic, 'stop_weapon_manual'):
-                self.logic.stop_weapon_manual()
+            self.logic.stop_weapon("B button pressed")
         elif code == config.BTN_Y:
             self.logic.toggle_laser()
         elif code == config.BTN_START:
