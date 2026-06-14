@@ -3,12 +3,44 @@ import config
 import json
 import os
 
+
+def _pulse_width_for_angle(angle, hardware_min_angle, hardware_max_angle):
+    """Map an angle within the hardware calibration range to a pulse width."""
+    hardware_span = hardware_max_angle - hardware_min_angle
+    if hardware_span == 0:
+        raise ValueError("Servo hardware angle range cannot be zero")
+
+    clamped_angle = max(hardware_min_angle, min(hardware_max_angle, angle))
+    pulse_span = config.MAX_PULSE_WIDTH - config.MIN_PULSE_WIDTH
+    return config.MIN_PULSE_WIDTH + ((clamped_angle - hardware_min_angle) / hardware_span) * pulse_span
+
 class Turret:
     def __init__(self, pan_pin, tilt_pin, laser_pin):
         # Load last known position
         saved_pan, saved_tilt = self.load_state()
         
         print(f"Starting turret at saved position: Pan={saved_pan}°, Tilt={saved_tilt}°")
+
+        pan_min_pulse_width = _pulse_width_for_angle(
+            config.SERVO_PAN_MIN_ANGLE,
+            config.SERVO_PAN_HW_MIN_ANGLE,
+            config.SERVO_PAN_HW_MAX_ANGLE,
+        )
+        pan_max_pulse_width = _pulse_width_for_angle(
+            config.SERVO_PAN_MAX_ANGLE,
+            config.SERVO_PAN_HW_MIN_ANGLE,
+            config.SERVO_PAN_HW_MAX_ANGLE,
+        )
+        tilt_min_pulse_width = _pulse_width_for_angle(
+            config.SERVO_TILT_MIN_ANGLE,
+            config.SERVO_TILT_HW_MIN_ANGLE,
+            config.SERVO_TILT_HW_MAX_ANGLE,
+        )
+        tilt_max_pulse_width = _pulse_width_for_angle(
+            config.SERVO_TILT_MAX_ANGLE,
+            config.SERVO_TILT_HW_MIN_ANGLE,
+            config.SERVO_TILT_HW_MAX_ANGLE,
+        )
 
         # Initialize servos at saved position (prevents startup jerk)
         # Pan servo: 270° range (-135° to +135°)
@@ -18,16 +50,16 @@ class Turret:
             initial_angle=saved_pan,
             min_angle=config.SERVO_PAN_MIN_ANGLE, 
             max_angle=config.SERVO_PAN_MAX_ANGLE,
-            min_pulse_width=config.MIN_PULSE_WIDTH,
-            max_pulse_width=config.MAX_PULSE_WIDTH,
+            min_pulse_width=pan_min_pulse_width,
+            max_pulse_width=pan_max_pulse_width,
         )
         self.tilt_servo = AngularServo(
             tilt_pin, 
             initial_angle=saved_tilt,
             min_angle=config.SERVO_TILT_MIN_ANGLE, 
             max_angle=config.SERVO_TILT_MAX_ANGLE,
-            min_pulse_width=config.MIN_PULSE_WIDTH,
-            max_pulse_width=config.MAX_PULSE_WIDTH,
+            min_pulse_width=tilt_min_pulse_width,
+            max_pulse_width=tilt_max_pulse_width,
         )
         self.laser = LED(laser_pin)
         

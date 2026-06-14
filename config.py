@@ -8,10 +8,16 @@ MOTOR_RR_PINS = (5, 6)    # Rear Right - OK (FIXED: No longer conflicts with gun
 # Using hardware PWM pins for smooth servo control
 SERVO_PAN_PIN = 12   # Horizontal (PWM0)
 SERVO_TILT_PIN = 13  # Vertical (PWM1)
+# Desired software travel limits. turret.py derives matching pulse widths from the hardware calibration below.
 SERVO_PAN_MIN_ANGLE = -135
 SERVO_PAN_MAX_ANGLE = 135
-SERVO_TILT_MIN_ANGLE = -90
-SERVO_TILT_MAX_ANGLE = 90
+SERVO_TILT_MIN_ANGLE = -80
+SERVO_TILT_MAX_ANGLE = 80
+# Full physical calibration range for the servos.
+SERVO_PAN_HW_MIN_ANGLE = -135
+SERVO_PAN_HW_MAX_ANGLE = 135
+SERVO_TILT_HW_MIN_ANGLE = -90
+SERVO_TILT_HW_MAX_ANGLE = 90
 SERVO_STATE_FILE = "turret_state.json"
 # Match the calibration used by the servo test script so no stopping around the midpoint.
 MIN_PULSE_WIDTH = 0.0005
