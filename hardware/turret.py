@@ -17,13 +17,17 @@ class Turret:
             pan_pin, 
             initial_angle=saved_pan,
             min_angle=config.SERVO_PAN_MIN_ANGLE, 
-            max_angle=config.SERVO_PAN_MAX_ANGLE
+            max_angle=config.SERVO_PAN_MAX_ANGLE,
+            min_pulse_width=config.MIN_PULSE_WIDTH,
+            max_pulse_width=config.MAX_PULSE_WIDTH,
         )
         self.tilt_servo = AngularServo(
             tilt_pin, 
             initial_angle=saved_tilt,
             min_angle=config.SERVO_TILT_MIN_ANGLE, 
-            max_angle=config.SERVO_TILT_MAX_ANGLE
+            max_angle=config.SERVO_TILT_MAX_ANGLE,
+            min_pulse_width=config.MIN_PULSE_WIDTH,
+            max_pulse_width=config.MAX_PULSE_WIDTH,
         )
         self.laser = LED(laser_pin)
         

@@ -44,34 +44,39 @@ async def main():
     # Input selection based on mode switch
     mode_switch = Button(config.MODE_SWITCH_PIN, pull_up=True)
     input_system = None
-
+    # Decide input source based on the physical mode switch.
     if mode_switch.is_pressed:
         # Mode 1: ELRS
         print("\n[MODE] ELRS (Radiomaster) detected")
-        
+
         try:
-            # Open port with non-blocking behavior
-            serial.Serial(config.ELRS_PORT, 420000, timeout=0.01)
+            # Probe serial port briefly to ensure it's available.
+            probe = serial.Serial(config.ELRS_PORT, 420000, timeout=0.01)
+            probe.close()
+            input_system = ElrsInput(config.ELRS_PORT, logic)
         except Exception as e:
             print(f"ELRS Error: {e}")
-            print("Switching to Xbox mode...")
-            input_system = "xbox"
-            return
-        
-        input_system = ElrsInput(config.ELRS_PORT, logic)
+            print("Falling back to Xbox mode...")
+            input_system = XboxController(logic)
 
     elif not mode_switch.is_pressed or input_system == "xbox":
         # Mode 2: Xbox
         print("\n[MODE] Xbox Controller detected")
-        
         input_system = XboxController(logic)
-        
+
+    # If we ended up with an Xbox controller, ensure it's connected before proceeding.
+    if isinstance(input_system, XboxController):
         print("Please turn on the controller...")
         is_connected = await input_system.connect(timeout=30)
-        
+
         if not is_connected:
             print("\n!!! Failed to connect controller !!!")
             return
+
+    # Safety: ensure an input system is configured before starting main loops.
+    if input_system is None or not hasattr(input_system, "listen"):
+        print("No valid input system configured; exiting.")
+        return
 
     # Start loops
     print("\n>>> ROBOT READY FOR ACTION <<<")
