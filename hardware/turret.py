@@ -1,4 +1,4 @@
-from gpiozero import AngularServo, ContinuousServo, LED
+from gpiozero import AngularServo, Servo, LED
 import config
 import json
 import os
@@ -13,7 +13,7 @@ class Turret:
         # Initialize servos at a safe neutral state (prevents startup jerk).
         # Pan servo: continuous rotation, centered at stop.
         # Tilt servo: positional servo.
-        self.pan_servo = ContinuousServo(
+        self.pan_servo = Servo(
             pan_pin, 
             initial_value=0.0,
             min_pulse_width=config.SERVO_PAN_MIN_PULSE_WIDTH,
@@ -84,6 +84,7 @@ class Turret:
     def move(self, delta_pan, delta_tilt):
         """Backward-compatible wrapper for the continuous pan control path."""
         self.set_pan_speed(delta_pan)
+        self.adjust_tilt(delta_tilt)
         self.tilt_angle = max(config.SERVO_TILT_MIN_ANGLE, min(config.SERVO_TILT_MAX_ANGLE, self.tilt_angle + delta_tilt))
 
     def set_pan_speed(self, pan_speed):
@@ -93,6 +94,10 @@ class Turret:
     def set_tilt_angle(self, tilt_angle):
         """Set the tilt servo position in degrees."""
         self.tilt_angle = max(config.SERVO_TILT_MIN_ANGLE, min(config.SERVO_TILT_MAX_ANGLE, tilt_angle))
+
+    def adjust_tilt(self, delta_tilt):
+        """Adjust tilt by a relative amount in degrees."""
+        self.set_tilt_angle(self.tilt_angle + delta_tilt)
 
     async def shutdown(self):
         """Save position and prepare for shutdown (no movement required)"""

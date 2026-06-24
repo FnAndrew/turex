@@ -92,7 +92,7 @@ AXIS_DPAD_X = 16
 AXIS_DPAD_Y = 17
 
 # Deadzone for joysticks
-DEADZONE = 4000
+DEADZONE = 5000
 
 # Button mapping for display
 BUTTON_MAP = {
