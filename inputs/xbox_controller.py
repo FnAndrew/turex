@@ -13,8 +13,8 @@ class XboxController:
         
         self.speed = 0.0
         self.turn = 0.0
-        self.turret_pan = 0.0
-        self.turret_tilt = 0.0
+        self.turret_pan_speed = 0.0
+        self.turret_tilt_speed = 0.0
         
         self.press_times = {}
 
@@ -109,16 +109,12 @@ class XboxController:
                 self.logic.set_movement(self.speed, self.turn)
 
             elif event.code == config.AXIS_RX:
-                self.turret_pan = self._map_axis(event.value)
-                if DEBUG:
-                    print(f"Right X: {self.turret_pan}% -> Turret Pan Speed")
-                self.logic.move_turret(self.turret_pan / 100.0, self.turret_tilt / 100.0)
+                self.turret_pan_speed = self._map_axis(event.value) / 100.0
+                self._apply_turret_stick()
 
             elif event.code == config.AXIS_RY:
-                self.turret_tilt = -self._map_axis(event.value)
-                if DEBUG:
-                    print(f"Right Y: {self.turret_tilt}% -> Turret Tilt Speed")
-                self.logic.move_turret(self.turret_pan / 100.0, self.turret_tilt / 100.0)
+                self.turret_tilt_speed = -self._map_axis(event.value) / 100.0
+                self._apply_turret_stick()
 
             elif event.code == config.AXIS_GAS:
                 if DEBUG:
@@ -157,6 +153,17 @@ class XboxController:
             # Add long press logic for A button (e.g., continuous firing, rapid fire, etc.)
             pass  # Placeholder for long press action
 
+    def _apply_turret_stick(self):
+        """Push the current right-stick state into the turret control path."""
+        pan_speed = self.turret_pan_speed
+        if config.SERVO_PAN_INVERT_DIRECTION:
+            pan_speed = -pan_speed
+
+        if DEBUG:
+            print(f"Right stick -> pan={pan_speed * 100:.0f}%, tilt={self.turret_tilt_speed * 100:.0f}%")
+
+        self.logic.move_turret(pan_speed, self.turret_tilt_speed)
+
     def _map_axis(self, value):
         """
         Convert raw value (0-65535) to range -100 to 100.
@@ -170,11 +177,11 @@ class XboxController:
         
         # Normalize from -100 to 100
         percent = (centered / 32768.0) * 100
-        return int(percent)
+        return percent
 
     def map_axis_stick(self, value):
         """Wrapper that returns stick position as -100..100 percentage."""
-        return int(self._map_axis(value))
+        return int(round(self._map_axis(value)))
 
     def map_trigger(self, value):
         """Normalize trigger raw value to 0-100% for printing.

@@ -1,128 +1,98 @@
-from gpiozero import AngularServo, LED
+from gpiozero import AngularServo, ContinuousServo, LED
 import config
 import json
 import os
 
-
-def _pulse_width_for_angle(angle, hardware_min_angle, hardware_max_angle):
-    """Map an angle within the hardware calibration range to a pulse width."""
-    hardware_span = hardware_max_angle - hardware_min_angle
-    if hardware_span == 0:
-        raise ValueError("Servo hardware angle range cannot be zero")
-
-    clamped_angle = max(hardware_min_angle, min(hardware_max_angle, angle))
-    pulse_span = config.MAX_PULSE_WIDTH - config.MIN_PULSE_WIDTH
-    return config.MIN_PULSE_WIDTH + ((clamped_angle - hardware_min_angle) / hardware_span) * pulse_span
-
 class Turret:
     def __init__(self, pan_pin, tilt_pin, laser_pin):
         # Load last known position
-        saved_pan, saved_tilt = self.load_state()
-        
-        print(f"Starting turret at saved position: Pan={saved_pan}°, Tilt={saved_tilt}°")
+        _, saved_tilt = self.load_state()
 
-        pan_min_pulse_width = _pulse_width_for_angle(
-            config.SERVO_PAN_MIN_ANGLE,
-            config.SERVO_PAN_HW_MIN_ANGLE,
-            config.SERVO_PAN_HW_MAX_ANGLE,
-        )
-        pan_max_pulse_width = _pulse_width_for_angle(
-            config.SERVO_PAN_MAX_ANGLE,
-            config.SERVO_PAN_HW_MIN_ANGLE,
-            config.SERVO_PAN_HW_MAX_ANGLE,
-        )
-        tilt_min_pulse_width = _pulse_width_for_angle(
-            config.SERVO_TILT_MIN_ANGLE,
-            config.SERVO_TILT_HW_MIN_ANGLE,
-            config.SERVO_TILT_HW_MAX_ANGLE,
-        )
-        tilt_max_pulse_width = _pulse_width_for_angle(
-            config.SERVO_TILT_MAX_ANGLE,
-            config.SERVO_TILT_HW_MIN_ANGLE,
-            config.SERVO_TILT_HW_MAX_ANGLE,
-        )
+        print(f"Starting turret with continuous pan stopped and saved tilt={saved_tilt}°")
 
-        # Initialize servos at saved position (prevents startup jerk)
-        # Pan servo: 270° range (-135° to +135°)
-        # Tilt servo: 180° range (-90° to +90°)
-        self.pan_servo = AngularServo(
+        # Initialize servos at a safe neutral state (prevents startup jerk).
+        # Pan servo: continuous rotation, centered at stop.
+        # Tilt servo: positional servo.
+        self.pan_servo = ContinuousServo(
             pan_pin, 
-            initial_angle=saved_pan,
-            min_angle=config.SERVO_PAN_MIN_ANGLE, 
-            max_angle=config.SERVO_PAN_MAX_ANGLE,
-            min_pulse_width=pan_min_pulse_width,
-            max_pulse_width=pan_max_pulse_width,
+            initial_value=0.0,
+            min_pulse_width=config.SERVO_PAN_MIN_PULSE_WIDTH,
+            max_pulse_width=config.SERVO_PAN_MAX_PULSE_WIDTH,
         )
         self.tilt_servo = AngularServo(
             tilt_pin, 
             initial_angle=saved_tilt,
             min_angle=config.SERVO_TILT_MIN_ANGLE, 
             max_angle=config.SERVO_TILT_MAX_ANGLE,
-            min_pulse_width=tilt_min_pulse_width,
-            max_pulse_width=tilt_max_pulse_width,
+            min_pulse_width=config.MIN_PULSE_WIDTH,
+            max_pulse_width=config.MAX_PULSE_WIDTH,
         )
         self.laser = LED(laser_pin)
         
-        # Set current angles to saved values
-        self.pan_angle = saved_pan
+        # Continuous pan uses speed commands instead of a stored angle.
+        self.pan_speed = 0.0
         self.tilt_angle = saved_tilt
-        
-        # Boundaries
-        self.pan_min = config.SERVO_PAN_MIN_ANGLE
-        self.pan_max = config.SERVO_PAN_MAX_ANGLE
-        self.tilt_min = config.SERVO_TILT_MIN_ANGLE
-        self.tilt_max = config.SERVO_TILT_MAX_ANGLE
 
     def load_state(self):
-        """Load turret position from file. Returns (0, 0) if file doesn't exist."""
+        """Load turret state from file.
+
+        Pan is continuous rotation, so only the tilt angle is restored.
+        Returns (0.0, 0) if file doesn't exist.
+        """
         if os.path.exists(config.SERVO_STATE_FILE):
             try:
                 with open(config.SERVO_STATE_FILE, "r") as f:
                     data = json.load(f)
-                    pan = data.get("pan", 0)
                     tilt = data.get("tilt", 0)
                     
                     # Validate loaded values are within bounds
-                    pan = max(config.SERVO_PAN_MIN_ANGLE, min(config.SERVO_PAN_MAX_ANGLE, pan))
                     tilt = max(config.SERVO_TILT_MIN_ANGLE, min(config.SERVO_TILT_MAX_ANGLE, tilt))
                     
-                    return pan, tilt
+                    return 0.0, tilt
             except Exception as e:
                 print(f"Error reading turret state file: {e}. Starting at center.")
-        return 0, 0
+        return 0.0, 0
 
     def save_state(self):
         """Save current turret position to file."""
         data = {
-            "pan": self.pan_angle,
+            "pan": 0.0,
             "tilt": self.tilt_angle
         }
         try:
             with open(config.SERVO_STATE_FILE, "w") as f:
                 json.dump(data, f, indent=2)
-            print(f"Turret position saved: Pan={self.pan_angle}°, Tilt={self.tilt_angle}°")
+            print(f"Turret position saved: Pan=continuous stop, Tilt={self.tilt_angle}°")
         except Exception as e:
             print(f"Error saving turret state: {e}")
 
     async def update(self):
         """Update servo positions"""
-        self.pan_servo.angle = self.pan_angle
+        self.pan_servo.value = self.pan_speed
         self.tilt_servo.angle = self.tilt_angle
 
     def set_position(self, pan_angle, tilt_angle):
-        """Directly set turret position in degrees
+        """Directly set turret pan speed and tilt angle.
         
         Args:
-            pan_angle: -135 to +135 degrees (left to right)
+            pan_angle: -100 to +100 percent speed for continuous rotation
             tilt_angle: -90 to +90 degrees (down to up)
         """
-        self.pan_angle = max(self.pan_min, min(self.pan_max, pan_angle))
-        self.tilt_angle = max(self.tilt_min, min(self.tilt_max, tilt_angle))
+        self.set_pan_speed(pan_angle / 100.0)
+        self.set_tilt_angle(tilt_angle)
 
     def move(self, delta_pan, delta_tilt):
-        """Add change in angle to current position"""
-        self.pan_angle = max(self.pan_min, min(self.pan_max, self.pan_angle + delta_pan))
-        self.tilt_angle = max(self.tilt_min, min(self.tilt_max, self.tilt_angle + delta_tilt))
+        """Backward-compatible wrapper for the continuous pan control path."""
+        self.set_pan_speed(delta_pan)
+        self.tilt_angle = max(config.SERVO_TILT_MIN_ANGLE, min(config.SERVO_TILT_MAX_ANGLE, self.tilt_angle + delta_tilt))
+
+    def set_pan_speed(self, pan_speed):
+        """Set continuous pan speed in the range -1.0..1.0."""
+        self.pan_speed = max(-1.0, min(1.0, pan_speed))
+
+    def set_tilt_angle(self, tilt_angle):
+        """Set the tilt servo position in degrees."""
+        self.tilt_angle = max(config.SERVO_TILT_MIN_ANGLE, min(config.SERVO_TILT_MAX_ANGLE, tilt_angle))
 
     async def shutdown(self):
         """Save position and prepare for shutdown (no movement required)"""

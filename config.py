@@ -8,20 +8,36 @@ MOTOR_RR_PINS = (5, 6)    # Rear Right - OK (FIXED: No longer conflicts with gun
 # Using hardware PWM pins for smooth servo control
 SERVO_PAN_PIN = 12   # Horizontal (PWM0)
 SERVO_TILT_PIN = 13  # Vertical (PWM1)
-# Desired software travel limits. turret.py derives matching pulse widths from the hardware calibration below.
+# Select which turret implementation to use: "continuous" or "legacy".
+TURRET_MODE = "continuous"
+
+# Continuous pan calibration.
+SERVO_PAN_MIN_PULSE_WIDTH = 0.0005
+SERVO_PAN_MAX_PULSE_WIDTH = 0.0025
+SERVO_PAN_STOP_PULSE_WIDTH = 0.0015
+# Flip this if right-stick left/right rotates the pan servo in the wrong direction.
+SERVO_PAN_INVERT_DIRECTION = False
+
+# Legacy positional pan travel limits and calibration.
+# This is kept for the switchable old turret implementation.
 SERVO_PAN_MIN_ANGLE = -135
 SERVO_PAN_MAX_ANGLE = 135
-SERVO_TILT_MIN_ANGLE = -80
-SERVO_TILT_MAX_ANGLE = 80
-# Full physical calibration range for the servos.
 SERVO_PAN_HW_MIN_ANGLE = -135
 SERVO_PAN_HW_MAX_ANGLE = 135
+
+# Tilt travel limits and calibration.
+SERVO_TILT_MIN_ANGLE = -80
+SERVO_TILT_MAX_ANGLE = 80
 SERVO_TILT_HW_MIN_ANGLE = -90
 SERVO_TILT_HW_MAX_ANGLE = 90
 SERVO_STATE_FILE = "turret_state.json"
-# Match the calibration used by the servo test script so no stopping around the midpoint.
+
+# Shared pulse-width calibration used by the positional tilt servo.
 MIN_PULSE_WIDTH = 0.0005
 MAX_PULSE_WIDTH = 0.0025
+
+# Legacy pan movement step used when the old positional turret is selected.
+SERVO_PAN_MOVE_STEP_DEGREES = 8.0
 
 # === WEAPON SYSTEM ===
 # FIXED: Changed from conflicting pins 5, 6

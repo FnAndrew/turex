@@ -6,9 +6,13 @@ from gpiozero import Button
 
 # Hardware imports
 from hardware.drivetrain import Drivetrain
-from hardware.turret import Turret
 from hardware.gun import Gun
 from hardware.lights import Lights
+
+if config.TURRET_MODE == "legacy":
+    from hardware.turret_legacy import Turret
+else:
+    from hardware.turret import Turret
 
 # Logic imports
 from core.robot_logic import RobotLogic
