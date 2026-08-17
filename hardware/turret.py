@@ -28,6 +28,7 @@ class Turret:
             max_pulse_width=config.MAX_PULSE_WIDTH,
         )
         self.laser = LED(laser_pin)
+        self.laser_status = False
         
         # Continuous pan uses speed commands instead of a stored angle.
         self.pan_speed = 0.0
@@ -108,9 +109,11 @@ class Turret:
         """Control laser on/off."""
         if on:
             self.laser.on()
+            self.laser_status = True
         else:
             self.laser.off()
+            self.laser_status = False
     
     def toggle_laser(self):
         """Toggle laser on/off."""
-        self.laser.toggle()
+        self.set_laser(not self.laser_status)
