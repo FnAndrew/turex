@@ -7,7 +7,7 @@ class Gun:
         self.start_time = 0.0
         self.safety_timeout = safety_timeout
         self.mosfet = OutputDevice(mosfet_pin, active_high=True, initial_value=False)
-        self.sensor = Button(sensor_pin, pull_up=True, bounce_time=None)
+        self.sensor = Button(sensor_pin, pull_up=False, bounce_time=None) # Pull-up - works on 3.3V
 
     async def fire_shot(self, logic):  # Pass logic reference
         if not logic.gun_armed:
