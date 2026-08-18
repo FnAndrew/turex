@@ -1,8 +1,8 @@
 # Using software PWM-capable pins, avoiding hardware PWM reserved for servos
-MOTOR_FL_PINS = (17, 27)  # Front Left - OK
-MOTOR_FR_PINS = (22, 23)  # Front Right - OK
-MOTOR_RL_PINS = (24, 25)  # Rear Left - OK
-MOTOR_RR_PINS = (5, 6)    # Rear Right - OK (FIXED: No longer conflicts with gun)
+MOTOR_FL_PINS = (23, 22)   # Front Left  (next to 3.3V)
+MOTOR_FR_PINS = (20, 21)   # Front Right (top corner)
+MOTOR_RL_PINS = (24, 25)   # Rear Left   (around the 2nd top GND)
+MOTOR_RR_PINS = (6, 4)     # Rear Right  (far away but working)
 
 # === TURRET SERVOS ===
 # Using hardware PWM pins for smooth servo control
@@ -50,15 +50,13 @@ LASER_PIN = 16  # OK
 
 # === LED INDICATORS ===
 LED_PINS = {
-    'status': 20,      # Status LED (changed from 19 to avoid gun conflict)
-    'indicator': 21,   # Indicator LED
-    'armed': 18,        # Armed LED (changed from 21 to avoid mode switch)
+    'status': 17,      # Status LED
+    'indicator': 2,   # Indicator LED
+    'armed': 18,        # Armed LED (keep it here, changed from 21 to avoid mode switch)
 }
 
 # === MODE SWITCH ===
-# This is defined in main.py as MODE_SWITCH_PIN = 21
-# Suggested change: Use GPIO14 instead (see main.py fix below)
-MODE_SWITCH_PIN = 14  # Changed from 21 to avoid conflict with 'armed' LED
+MODE_SWITCH_PIN = 27
 
 # === CONTROLLER SETTINGS ===
 GAMEPAD_DEVICE = '/dev/input/event0'
