@@ -1,6 +1,7 @@
 import evdev
 from evdev import ecodes
 import asyncio
+import math
 import config
 
 DEBUG = config.XBOX_DEBUG
@@ -137,7 +138,7 @@ class XboxController:
     def _handle_short_press(self, code, button_name, duration):
         """Handle short button press (< 2 seconds)."""
         if code == config.BTN_A:
-            asyncio.create_task(self.logic.fire_weapon())
+            self._start_burst_fire(duration)
         elif code == config.BTN_B:
             self.logic.stop_weapon("B button pressed")
         elif code == config.BTN_Y:
@@ -150,8 +151,30 @@ class XboxController:
         if DEBUG:
             print(f"   -> BUTTON {button_name} long pressed for {duration:.2f} seconds.")
         if code == config.BTN_A:
-            # Add long press logic for A button (e.g., continuous firing, rapid fire, etc.)
-            pass  # Placeholder for long press action
+            self._start_burst_fire(duration)
+
+    def _start_burst_fire(self, hold_duration):
+        """Convert A-button hold duration to burst size and fire it asynchronously."""
+        shots = self._shots_from_hold_duration(hold_duration)
+        if DEBUG:
+            print(f"A hold {hold_duration:.2f}s -> burst {shots} shot(s)")
+
+        asyncio.create_task(
+            self.logic.fire_burst(
+                shots,
+                inter_shot_delay=config.BURST_INTER_SHOT_DELAY
+            )
+        )
+
+    def _shots_from_hold_duration(self, hold_duration):
+        """Scale burst size with hold time using BTN_HOLD_TIME as the step."""
+        if hold_duration <= 0:
+            return 1
+
+        hold_step = getattr(config, "BURST_HOLD_STEP", config.BTN_HOLD_TIME)
+        hold_step = max(0.05, hold_step)
+        raw_shots = math.floor(hold_duration / hold_step) + 1
+        return max(1, min(config.BURST_MAX_SHOTS, raw_shots))
 
     def _apply_turret_stick(self):
         """Push the current right-stick state into the turret control path."""

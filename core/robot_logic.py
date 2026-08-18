@@ -54,10 +54,17 @@ class RobotLogic:
             print("!!! GUN DISABLED: Robot not armed !!!")
             return
         await self.gun.fire_shot(self)
+
+    async def fire_burst(self, shots, inter_shot_delay=0.08):
+        """Fire a burst where shot count is provided by input logic."""
+        if not self.gun_armed:
+            print("!!! GUN DISABLED: Robot not armed !!!")
+            return
+        await self.gun.fire_burst(self, shots, inter_shot_delay)
         
     def stop_weapon(self, reason="Manual stop command"):
         """Stop weapon firing"""
-        self.gun.stop_firing(reason)
+        self.gun.stop_firing(reason, cancel_burst=True)
     
     def set_laser(self, state: bool):
         """Control laser on/off via turret."""

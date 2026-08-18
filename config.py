@@ -44,6 +44,11 @@ SERVO_PAN_MOVE_STEP_DEGREES = 8.0
 GUN_SENSOR_PIN = 26  # End-stop sensor (was 6)
 GUN_MOSFET_PIN = 19  # Motor control (was 5)
 SAFETY_TIMEOUT = 2.0  # seconds
+# Burst firing from A button hold duration.
+# Shots scale as: floor(hold_seconds / BURST_HOLD_STEP) + 1, capped by BURST_MAX_SHOTS.
+BURST_HOLD_STEP = 0.45  # seconds required per additional shot
+BURST_MAX_SHOTS = 5
+BURST_INTER_SHOT_DELAY = 0.08  # seconds between burst shots
 
 # === LASER ===
 LASER_PIN = 16  # OK
