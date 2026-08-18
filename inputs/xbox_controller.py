@@ -99,13 +99,13 @@ class XboxController:
             if event.code == config.AXIS_LX:
                 if DEBUG:
                     print(f"Left X: {self.map_axis_stick(event.value)}%")
-                self.turn = self._map_axis(event.value)
+                self.turn = self._map_axis(event.value) / 100.0
                 self.logic.set_movement(self.speed, self.turn)
 
             elif event.code == config.AXIS_LY:
                 if DEBUG:
                     print(f"Left Y: {self.map_axis_stick(event.value)}%")
-                self.speed = -self._map_axis(event.value)
+                self.speed = -self._map_axis(event.value) / 100.0
                 self.logic.set_movement(self.speed, self.turn)
 
             elif event.code == config.AXIS_RX:
