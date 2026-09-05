@@ -17,6 +17,7 @@ SERVO_PAN_MAX_PULSE_WIDTH = 0.0025
 SERVO_PAN_STOP_PULSE_WIDTH = 0.0015
 # Flip this if right-stick left/right rotates the pan servo in the wrong direction.
 SERVO_PAN_INVERT_DIRECTION = False
+SERVO_TITL_INVERT_DIRECTION = True
 
 # Legacy positional pan travel limits and calibration.
 # This is kept for the switchable old turret implementation.
