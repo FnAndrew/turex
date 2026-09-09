@@ -1,8 +1,8 @@
 # Using software PWM-capable pins, avoiding hardware PWM reserved for servos
-MOTOR_FL_PINS = (23, 22)   # Front Left  (next to 3.3V)
-MOTOR_FR_PINS = (20, 21)   # Front Right (top corner)
-MOTOR_RL_PINS = (24, 25)   # Rear Left   (around the 2nd top GND)
-MOTOR_RR_PINS = (6, 4)     # Rear Right  (far away but working)
+MOTOR_FL_PINS = (25, 24)   # Rear Left   (around the 2nd top GND)
+MOTOR_FR_PINS = (6, 4)     # Rear Right  (far away but working)
+MOTOR_RL_PINS = (21, 20)   # Front Right (top corner)
+MOTOR_RR_PINS = (22, 23)   # Front Left  (next to 3.3V)
 
 # === TURRET SERVOS ===
 # Using hardware PWM pins for smooth servo control
