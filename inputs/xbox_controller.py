@@ -150,8 +150,12 @@ class XboxController:
         """Handle long button press (>= 2 seconds)."""
         if DEBUG:
             print(f"   -> BUTTON {button_name} long pressed for {duration:.2f} seconds.")
+            
         if code == config.BTN_A:
             self._start_burst_fire(duration)
+        elif code == config.BTN_SHARE:
+            if duration >= 3.0:
+                self.logic.request_shutdown()
 
     def _start_burst_fire(self, hold_duration):
         """Convert A-button hold duration to burst size and fire it asynchronously."""

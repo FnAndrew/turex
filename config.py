@@ -80,6 +80,7 @@ BTN_TR = 311  # Right Bumper
 BTN_START = 315
 BTN_BACK = 314
 BTN_XBOX = 316
+BTN_SHARE = 167
 
 # Buttons that support long press (others use short press only)
 LONG_PRESS_BUTTONS = [BTN_A]
@@ -95,7 +96,7 @@ AXIS_DPAD_X = 16
 AXIS_DPAD_Y = 17
 
 # Deadzone for joysticks
-DEADZONE = 5000
+DEADZONE = 6000
 
 # Button mapping for display
 BUTTON_MAP = {

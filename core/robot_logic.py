@@ -1,4 +1,5 @@
 import asyncio
+import subprocess
 from hardware.drivetrain import Drivetrain
 from hardware.turret import Turret
 from hardware.gun import Gun
@@ -13,6 +14,7 @@ class RobotLogic:
         
         # Runtime state
         self.gun_armed = False
+        self.shutdown_requested = False
         
         # Turret speed storage
         self.turret_speed_pan = 0.0
@@ -74,6 +76,15 @@ class RobotLogic:
         """Toggle laser on/off via turret."""
         self.turret.toggle_laser()
 
+    def request_shutdown(self):
+        """Request a clean program exit and ask the OS to shut down."""
+        if self.shutdown_requested:
+            return
+
+        self.shutdown_requested = True
+        print(">>> SYSTEM SHUTDOWN REQUESTED <<<")
+        subprocess.Popen(["sudo", "shutdown", "now"])
+
     async def stop_all(self):
         self.drive.stop()
         self.turret.set_laser(False)
@@ -82,7 +93,7 @@ class RobotLogic:
 
     async def loop(self):
         """Main robot control loop"""
-        while True:
+        while not self.shutdown_requested:
             await self.drive.update()
             
             delta_tilt = self.turret_speed_tilt * 5

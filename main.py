@@ -87,10 +87,16 @@ async def main():
     print("Press Ctrl+C to exit.")
 
     try:
-        await asyncio.gather(
-            input_system.listen(),
-            logic.loop()
+        input_task = asyncio.create_task(input_system.listen())
+        logic_task = asyncio.create_task(logic.loop())
+        done, pending = await asyncio.wait(
+            (input_task, logic_task),
+            return_when=asyncio.FIRST_COMPLETED
         )
+
+        for task in pending:
+            task.cancel()
+        await asyncio.gather(*pending, return_exceptions=True)
     except asyncio.CancelledError:
         print("Tasks cancelled.")
     finally:
