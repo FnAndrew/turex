@@ -185,6 +185,9 @@ class XboxController:
         pan_speed = self.turret_pan_speed
         if config.SERVO_PAN_INVERT_DIRECTION:
             pan_speed = -pan_speed
+            
+        if config.SERVO_TITL_INVERT_DIRECTION:
+            self.turret_tilt_speed = -self.turret_tilt_speed
 
         if DEBUG:
             print(f"Right stick -> pan={pan_speed * 100:.0f}%, tilt={self.turret_tilt_speed * 100:.0f}%")
