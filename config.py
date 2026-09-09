@@ -84,7 +84,7 @@ BTN_XBOX = 316
 BTN_SHARE = 167
 
 # Buttons that support long press (others use short press only)
-LONG_PRESS_BUTTONS = [BTN_A]
+LONG_PRESS_BUTTONS = [BTN_A, BTN_SHARE]
 
 # Axis codes
 AXIS_LX = 0    # Left stick X
