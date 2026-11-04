@@ -102,6 +102,7 @@ Raspberry Pi               Servos & Laser                    │
 ├── .gitignore                 # Excluded files (pycache, virtual environments)
 ├── LICENSE                    # Software licensing terms (e.g., MIT License)
 └── README.md                  # Primary repository overview and showcase documentation
+```
 
 ---
 
