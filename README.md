@@ -29,7 +29,7 @@ An autonomous / remote-controlled combat robot featuring omnidirectional Mecanum
 
 ## 🛠️ Hardware Architecture
 
-> *Wiring schema*
+![Wiring diagram](./docs/schematics/turex_wiring.svg)
 
 ### Power Supply Distribution
 To ensure system stability and avoid brownouts during high motor loads or piston recycles, the power system is divided into two main isolated rails downstream of the **2S Li-ion battery pack (7.4V)** and **BMS board**:
@@ -109,14 +109,14 @@ Raspberry Pi               Servos & Laser                    │
 ## 📄 3D Printed Chassis & Hardware Design
 
 The physical chassis and mechanical components were designed in **Autodesk Fusion 360** and printed on a **BambuLab P1S** using **PLA** for rigid structural elements and **TPU**.
+
 ---
 
 ### 🛠️ Subsystem Assemblies
 
 ### Complete Assembly
-*(Overview)*
 
-<img src="docs/mechanical/main_robot.png" width="400" alt="Full Robot Showcase">
+![Full Robor Showcase](docs/mechanical/turex-showcase.png)
 
 Assembled combat robot featuring continuous turret movement. Custom PLA chassis printed with a 5 mm baseplate, featuring an integrated 360° slipring and dual-rail power separation.
 
@@ -124,7 +124,8 @@ Assembled combat robot featuring continuous turret movement. Custom PLA chassis 
 
 ### Lower Chassis & Electronics
 
-<img src="docs/mechanical/chassis_bottom.png" width="400" alt="Chassis and Electronics">
+![Chassis and Electronics](docs/mechanical/turex-chassis.png)
+
 
 Raspberry Pi main computer powered via a dedicated clean XL4015 buck converter. Features dual DRV8833 motor drivers for the 4-wheel Mecanum drive and an independent XL4015 power rail for the high-load Pan servo (MG996R).
 
@@ -132,7 +133,9 @@ Raspberry Pi main computer powered via a dedicated clean XL4015 buck converter. 
 
 ### Turret & Upper Bearing Assembly
 
-<img src="docs/mechanical/turret_assembly.png" width="400" alt="Turret Unit">
+![Turret Unit](docs/mechanical/turex-turret.png)
+
+![Turret Unit 2nd look](docs/mechanical/turex-turret-side.png)
 
 Continuous 360° rotation enabled by a 12-channel 12.5mm slipring. Houses the integrated Taigen BB cannon mechanism with MOSFET high-side/low-side drive, a hardware limit-switch endstop for automatic piston stroke cut-off, and tilt adjustment via an MG90S metal-gear servo.
 
