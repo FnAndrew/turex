@@ -4,7 +4,7 @@
 [![Hardware](https://img.shields.io/badge/Hardware-Raspberry%20Pi-red.svg)](https://www.raspberrypi.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-An autonomous / remote-controlled combat robot featuring omnidirectional Mecanum drive, 360° continuous turret rotation, active BB firing mechanism, and isolated dual-power rail architecture.
+Remote-controlled combat robot featuring omnidirectional Mecanum drive, 360° continuous turret rotation, active BB firing mechanism, and isolated dual-power rail architecture.
 
 ---
 
