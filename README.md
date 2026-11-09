@@ -10,9 +10,9 @@ Remote-controlled combat robot featuring omnidirectional Mecanum drive, 360° co
 
 ## 📸 Media & Demo
 
-> *Main foto*
+![Robot Photo](./media/turex-showcase.jpeg)
 
-![Robot Photo](media/robot_demo.gif)
+_View of the whole robot with its controller._
 
 ---
 
